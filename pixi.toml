@@ -1,0 +1,43 @@
+[workspace]
+name = "single_cell_pipeline"
+version = "0.1.0"
+description = "Single-cell RAW to clean FASTQ preprocessing, quality control, and interactive analysis pipeline"
+authors = ["Antigravity Bio Team"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "linux-aarch64"]
+
+[dependencies]
+python = ">=3.11,<3.13"
+fastp = ">=0.23.4"
+fastqc = ">=0.12.1"
+multiqc = ">=1.21"
+cutadapt = ">=4.8"
+umi_tools = ">=1.1.5"
+seqkit = ">=2.8.0"
+samtools = ">=1.19"
+pandas = ">=2.2.0"
+numpy = ">=1.26.0"
+scipy = ">=1.12.0"
+matplotlib-base = ">=3.8.0"
+seaborn = ">=0.13.0"
+pyyaml = ">=6.0"
+biopython = ">=1.83"
+rich = ">=13.7.0"
+click = ">=8.1.7"
+tqdm = ">=4.66.0"
+jupyterlab = ">=4.1.0"
+ipykernel = ">=6.29.0"
+nbformat = ">=5.9.0"
+nbclient = ">=0.10.0"
+plotly = ">=5.20.0"
+jinja2 = ">=3.1.0"
+
+[tasks]
+generate-sample-data = "python -m src.sc_data_generator --num-cells 100 --reads-per-cell 200 --outdir data/raw --whitelist data/whitelist/737K-august-2016.txt"
+qc-raw = "python -m src.pipeline qc --stage raw"
+preprocess = "python -m src.pipeline preprocess"
+qc-clean = "python -m src.pipeline qc --stage clean"
+multiqc-report = "python -m src.pipeline multiqc"
+full-pipeline = "python -m src.pipeline full"
+jupyter = "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser"
+test-notebooks = "python -m src.utils --test-notebooks"

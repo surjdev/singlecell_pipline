@@ -1,0 +1,22 @@
+{
+  "fastp_summary": {
+    "before_filtering_reads": 43790,
+    "after_filtering_reads": 43738,
+    "filtering_passed_reads_fraction": 0.998812514272665,
+    "q30_rate_before": 0.536117,
+    "q30_rate_after": 0.592132,
+    "adapter_trimmed_reads": 1671,
+    "polyx_trimmed_reads": 1510
+  },
+  "barcode_filtering_summary": {
+    "input_reads": 21869,
+    "passed_reads": 21678,
+    "passed_fraction": 0.9912661758653802,
+    "exact_whitelist_matches": 20659,
+    "exact_match_fraction": 0.9446705382047648,
+    "corrected_1bp_mismatches": 1019,
+    "corrected_fraction": 0.04659563766061548,
+    "discarded_invalid_barcodes": 191,
+    "discarded_short_reads": 0
+  }
+}

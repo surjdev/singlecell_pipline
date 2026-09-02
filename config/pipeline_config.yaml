@@ -1,0 +1,68 @@
+# Single-Cell RAW to Clean FASTQ Preprocessing Configuration
+# -------------------------------------------------------------
+
+project:
+  name: "single_cell_sample_experiment"
+  sample_id: "scRNA_sample_01"
+  description: "10x Chromium 3' v3 scRNA-seq preprocessing pipeline"
+
+# Paths Configuration
+paths:
+  raw_dir: "data/raw"
+  clean_dir: "data/clean"
+  reports_dir: "reports"
+  qc_raw_dir: "reports/qc_raw"
+  qc_clean_dir: "reports/qc_clean"
+  multiqc_dir: "reports/multiqc"
+  whitelist_file: "data/whitelist/737K-august-2016.txt"
+  sample_r1: "data/raw/scRNA_sample_01_R1.fastq.gz"
+  sample_r2: "data/raw/scRNA_sample_01_R2.fastq.gz"
+  clean_r1: "data/clean/scRNA_sample_01_val_R1.fastq.gz"
+  clean_r2: "data/clean/scRNA_sample_01_val_R2.fastq.gz"
+  extracted_fastq: "data/clean/scRNA_sample_01_extracted.fastq.gz"
+
+# Library Chemistry & Structure
+chemistry:
+  name: "10x_v3"
+  description: "10x Genomics Chromium 3' v3"
+  r1_structure:
+    cell_barcode_len: 16
+    umi_len: 12
+    total_len: 28
+  r2_structure:
+    cdna_min_len: 30
+    typical_len: 91
+
+# Preprocessing & Trimming Parameters
+preprocessing:
+  threads: 4
+  fastp:
+    qualified_quality_phred: 20
+    unqualified_percent_limit: 30
+    n_base_limit: 3
+    min_length: 25
+    trim_poly_g: true
+    poly_g_min_len: 10
+    trim_poly_x: true
+    poly_x_min_len: 10
+    cut_front: true
+    cut_front_window_size: 4
+    cut_front_mean_quality: 20
+    cut_tail: true
+    cut_tail_window_size: 4
+    cut_tail_mean_quality: 20
+    adapter_sequence_r2: "AAGCAGTGGTATCAACGCAGAGTACATGGG" # 10x template switch oligo / adapter
+  
+  barcode_filtering:
+    max_hamming_distance: 1
+    filter_unknown_barcodes: true
+    min_cell_reads: 10
+    extract_to_header: true # Embed CB and UMI in FASTQ read header (compatible with Kallisto/STARsolo/UMI-tools)
+
+# QC Quality Thresholds
+qc_thresholds:
+  min_q30_cell_barcode: 0.85
+  min_q30_umi: 0.80
+  min_q30_rna_read: 0.75
+  min_valid_barcode_fraction: 0.80
+  min_usable_reads_fraction: 0.70

@@ -1,0 +1,6 @@
+Module	Section	Sample Name	Source
+fastp	all_sections	scRNA_sample_01	/home/surj/Workspace/single_cell_pipeline/reports/fastp/scRNA_sample_01_fastp.json
+FastQC	all_sections	scRNA_sample_01_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/scRNA_sample_01_R1_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/scRNA_sample_01_R2_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/scRNA_sample_01_val_R1_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/scRNA_sample_01_val_R2_fastqc.zip
