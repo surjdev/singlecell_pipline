@@ -1,0 +1,19 @@
+### /home/surj/Workspace/single_cell_pipeline/.pixi/envs/default/bin/STAR-avx2   --runMode genomeGenerate      --runThreadN 4   --genomeDir data/reference/star_index   --genomeFastaFiles data/reference/mini_genome.fa      --genomeSAindexNbases 6   --sjdbGTFfile data/reference/mini_genes.gtf
+### GstrandBit 32
+versionGenome	2.7.4a
+genomeType	Full
+genomeFastaFiles	data/reference/mini_genome.fa 
+genomeSAindexNbases	6
+genomeChrBinNbits	18
+genomeSAsparseD	1
+genomeTransformType	None
+genomeTransformVCF	-
+sjdbOverhang	100
+sjdbFileChrStartEnd	- 
+sjdbGTFfile	data/reference/mini_genes.gtf
+sjdbGTFchrPrefix	-
+sjdbGTFfeatureExon	exon
+sjdbGTFtagExonParentTranscript	transcript_id
+sjdbGTFtagExonParentGene	gene_id
+sjdbInsertSave	Basic
+genomeFileSizes	266767 184597

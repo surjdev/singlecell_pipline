@@ -1,6 +1,6 @@
-# 🧬 Single-Cell RAW to Clean FASTQ Preprocessing & QC Suite
+# 🧬 Smart-seq2 Single-Cell & Transcriptomic Pipeline (Upstream & Downstream)
 
-A production-grade, reproducible pipeline and interactive Jupyter analysis environment for processing **Single-Cell RNA-seq FASTQ** data (e.g. 10x Genomics Chromium 3' v2/v3, Drop-seq, Split-seq) from raw sequencing reads to quality-controlled, adapter-trimmed, error-corrected clean FASTQ files.
+A production-grade, reproducible pipeline and interactive Jupyter analysis environment for processing **Smart-seq2 / Plate-based Single-Cell RNA-seq and Transcriptomic data** from raw paired-end FASTQ reads to alignments, gene quantification count matrices, **MultiQC** reporting, and complete **Downstream Single-Cell Analysis (Scanpy, UMAP, Leiden Clustering, Marker Gene Discovery, and GSEA)**.
 
 Managed via **[Pixi](https://pixi.sh/)** with native `bioconda` and `conda-forge` environments.
 
@@ -8,23 +8,19 @@ Managed via **[Pixi](https://pixi.sh/)** with native `bioconda` and `conda-forge
 
 ## 🚀 Key Features
 
-- **⚡ Complete Environment Reproducibility**: Zero conda-activation headaches; managed entirely through `pixi.toml` with fast C++/Rust resolution.
-- **🔬 Comprehensive Single-Cell QC**:
-  - Per-cycle Phred quality profiles for Cell Barcode, UMI, and cDNA.
-  - Cell Barcode rank distribution and **Knee Plot** cell vs. ambient droplet inflection estimation.
-  - Barcode Whitelist match rates (Exact match vs. 1-Hamming distance recoverable vs. invalid).
-  - FastQC and automated **MultiQC** interactive HTML reporting.
-- **✂️ Robust Preprocessing & Trimming**:
-  - Automated adapter / Template Switch Oligo (TSO) removal.
-  - Poly-G (NextSeq/NovaSeq two-color artifact) and Poly-A tail trimming via `fastp`.
-  - Sliding-window low-quality 3' tail trimming.
-- **🎯 1-Hamming Distance Barcode Error Correction**:
-  - Recovers sequencing errors in cell barcodes against official 10x whitelists.
-  - Discards uncorrectable chimeric and low-quality barcodes.
-- **📓 3 Interactive Jupyter Notebooks**:
-  - Step-by-step visual exploration, parameter tuning, and publication-ready plots.
-- **📦 Downstream Compatibility**:
-  - Produces clean paired FASTQs (`*_val_R1.fastq.gz`, `*_val_R2.fastq.gz`) and header-extracted FASTQs (`@READ_CB_UMI`) compatible with **STARsolo**, **Kallisto/Bustools**, **CellRanger**, and **Salmon/Alevin**.
+### 1. Upstream Processing & Alignment
+- **FastQC & MultiQC**: Automated raw and clean read quality assessments, per-tile Phred scores, adapter content, and alignment stats.
+- **fastp Trimming**: High-performance Nextera transposase adapter (`CTGTCTCTTATACACATCT`) removal, ISPCR oligo trimming, poly-A/poly-G tail removal, and sliding-window quality filtering.
+- **STAR & HISAT2 Alignment**: Splice-aware reference genome indexing, paired-end mapping, coordinate sorting, and BAM indexing via `samtools`.
+- **featureCounts (Subread) & STAR Counts**: Exon/gene-level transcriptomic quantification aggregated into a unified **Gene $\times$ Cell Expression Matrix** (`.csv`, `.tsv`, and AnnData `.h5ad`).
+
+### 2. Downstream Single-Cell Analysis (Scanpy Ecosystem)
+- **Cell & Gene Quality Control**: Automated filtering based on detected genes, total counts, and mitochondrial read percentage thresholds.
+- **Normalization & Feature Selection**: Library size depth scaling, $\log(1 + x)$ variance stabilization, and Highly Variable Gene (HVG) selection.
+- **Dimensionality Reduction & Graph Embedding**: PCA decomposition, neighborhood graph construction, and non-linear **UMAP** visualization.
+- **Community Clustering**: **Leiden** graph-based clustering for cell state and subpopulation identification.
+- **Differential Expression & Marker Discovery**: Identification of cluster-specific biomarker genes (Wilcoxon rank-sum / t-test) and export to `reports/downstream/cluster_markers.csv`.
+- **Publication-Ready Visualization**: Automated generation of UMAP cluster plots, QC violin plots, and Marker DotPlots.
 
 ---
 
@@ -35,51 +31,52 @@ single_cell_pipeline/
 ├── pixi.toml                   # Pixi package & environment configuration
 ├── README.md                   # Project documentation & user guide
 ├── config/
-│   └── pipeline_config.yaml    # Centralized pipeline & chemistry configuration
+│   └── pipeline_config.yaml    # Centralized pipeline & aligner/quant/downstream configuration
 ├── src/
 │   ├── __init__.py
 │   ├── utils.py                # Logging, command runner, summary tables
-│   ├── sc_data_generator.py    # Synthetic 10x FASTQ & whitelist generator
-│   ├── sc_qc.py                # Single-cell QC & Knee plot analysis engine
-│   ├── sc_preprocess.py        # fastp trimming & 1-Hamming barcode error corrector
+│   ├── sc_data_generator.py    # Synthetic Smart-seq2 multi-cell FASTQ & mini reference generator
+│   ├── sc_qc.py                # FastQC and MultiQC engine
+│   ├── sc_preprocess.py        # fastp paired-end trimming engine
+│   ├── aligner.py              # STAR and HISAT2 splice-aware aligners + samtools
+│   ├── quantifier.py           # featureCounts & STAR counts + AnnData matrix export
+│   ├── downstream.py           # Scanpy downstream QC, PCA, UMAP, Leiden & Marker discovery
 │   ├── pipeline.py             # Unified CLI workflow orchestration
 │   └── build_notebooks.py      # Notebook generator & maintenance script
 ├── notebooks/
-│   ├── 01_raw_data_qc.ipynb                # Raw QC, per-cycle Phred, Knee plot
-│   ├── 02_preprocessing_pipeline.ipynb     # Interactive trimming & error-correction
-│   └── 03_post_qc_and_benchmarking.ipynb   # Before vs After benchmarking & MultiQC
+│   ├── 01_raw_qc_and_trimming.ipynb            # Raw FastQC, fastp trimming & metrics
+│   ├── 02_alignment_and_quantification.ipynb   # STAR / HISAT2 mapping & featureCounts
+│   ├── 03_single_cell_matrix_and_multiqc.ipynb # Count matrix QC, AnnData & MultiQC
+│   └── 04_downstream_single_cell_analysis.ipynb# Scanpy QC, UMAP, Leiden & Marker discovery
 ├── data/
-│   ├── raw/                    # Raw paired FASTQ inputs
-│   ├── clean/                  # Preprocessed clean FASTQ outputs
-│   └── whitelist/              # 10x barcode whitelists (e.g. 737K-august-2016.txt)
+│   ├── raw/                    # Raw paired-end FASTQ inputs per cell (e.g. cell_01_R1/R2)
+│   ├── clean/                  # Trimmed clean FASTQ outputs
+│   ├── aligned/                # Coordinate-sorted and indexed BAM files (.bam, .bai)
+│   ├── counts/                 # Gene-by-cell matrix (CSV, TSV, AnnData .h5ad)
+│   └── reference/              # Reference genome FASTA, GTF, and aligner indices
 └── reports/
-    ├── qc_raw/                 # Raw FastQC & JSON metrics
-    ├── qc_clean/               # Clean FastQC & JSON metrics
+    ├── qc_raw/                 # Raw FastQC reports
+    ├── qc_clean/               # Clean FastQC reports
     ├── fastp/                  # fastp trimming HTML & JSON reports
-    └── multiqc/                # MultiQC aggregated interactive dashboard
+    ├── multiqc/                # MultiQC aggregated interactive dashboard
+    └── downstream/             # UMAP plots, QC violins, Marker DotPlots & CSV tables
 ```
 
 ---
 
 ## ⚡ Quick Start
 
-### 1. Install Pixi (if not already installed)
-```bash
-curl -fsSL https://pixi.sh/install.sh | bash
-```
-
-### 2. Initialize the Environment
+### 1. Initialize the Environment
 ```bash
 pixi install
 ```
 
-### 3. Generate Sample 10x scRNA-seq Data (or use your own)
+### 2. Generate Sample Smart-seq2 Data & Mini Reference
 ```bash
 pixi run generate-sample-data
 ```
-*Generates realistic 10x Chromium 3' v3 paired FASTQs with cell barcodes, UMIs, adapter contamination, low-quality ends, poly-A/poly-G tails, and an authentic 10x whitelist.*
 
-### 4. Run the Full End-to-End Pipeline
+### 3. Run the Full End-to-End Pipeline (Upstream + Downstream)
 ```bash
 pixi run full-pipeline
 ```
@@ -90,114 +87,53 @@ pixi run full-pipeline
 
 | Pixi Task | Description |
 | :--- | :--- |
-| `pixi run generate-sample-data` | Simulates realistic 10x single-cell FASTQs |
-| `pixi run qc-raw` | Computes raw FastQC & single-cell QC metrics |
-| `pixi run preprocess` | Performs fastp trimming + whitelist error correction |
-| `pixi run qc-clean` | Computes clean FastQC & single-cell QC metrics |
+| `pixi run generate-sample-data` | Generates 8 synthetic Smart-seq2 cell FASTQ pairs + mini genome/GTF |
+| `pixi run qc-raw` | Runs FastQC on raw FASTQ files |
+| `pixi run trim` | Performs fastp paired-end trimming (Nextera adapter, poly-A/G) |
+| `pixi run qc-clean` | Runs FastQC on clean FASTQ files |
+| `pixi run align-star` | Aligns clean reads using STAR with BAM sorting & indexing |
+| `pixi run align-hisat2` | Aligns clean reads using HISAT2 with BAM sorting & indexing |
+| `pixi run quant-featurecounts` | Quantifies genes using Subread featureCounts |
+| `pixi run quant-star` | Quantifies genes using STAR ReadsPerGene counts |
 | `pixi run multiqc-report` | Aggregates all reports into an interactive MultiQC dashboard |
-| `pixi run full-pipeline` | Runs the complete workflow from start to finish |
+| `pixi run downstream` | Executes Scanpy downstream QC, PCA, UMAP, Leiden & Marker discovery |
+| `pixi run full-pipeline` | Executes the complete workflow from raw FASTQs to downstream results |
 | `pixi run jupyter` | Launches Jupyter Lab (`http://localhost:8888`) |
-| `pixi run test-notebooks` | Programmatically executes and validates all 3 notebooks |
-
-You can also run individual steps directly via the CLI:
-```bash
-# Run QC on raw FASTQs
-pixi run python -m src.pipeline qc --stage raw --config config/pipeline_config.yaml
-
-# Run Preprocessing
-pixi run python -m src.pipeline preprocess --config config/pipeline_config.yaml
-
-# Run QC on clean FASTQs
-pixi run python -m src.pipeline qc --stage clean --config config/pipeline_config.yaml
-
-# Build MultiQC report
-pixi run python -m src.pipeline multiqc --config config/pipeline_config.yaml
-```
+| `pixi run test-notebooks` | Programmatically executes and validates all 4 notebooks |
 
 ---
 
 ## 📓 Interactive Jupyter Notebooks Guide
 
-Launch Jupyter with:
+Launch Jupyter Lab with:
 ```bash
 pixi run jupyter
 ```
 
-1. **`notebooks/01_raw_data_qc.ipynb`**:
-   - Inspect raw FASTQ structure (R1 28bp CB+UMI, R2 91bp cDNA).
-   - Per-cycle Phred scores across barcode cycles.
-   - Barcode frequency distribution and interactive **Knee Plot** with automatic cell inflection cutoff.
-   - Whitelist match breakdown (Exact vs 1-bp mismatch vs invalid).
+1. **`notebooks/01_raw_qc_and_trimming.ipynb`**:
+   - Inspect raw paired-end FASTQ structure.
+   - Run FastQC and examine per-base quality profiles.
+   - Run `fastp` adapter and poly-A/G tail trimming.
+   - Before vs. After read retention and Q30 score comparisons.
 
-2. **`notebooks/02_preprocessing_pipeline.ipynb`**:
-   - Interactive `fastp` adapter, poly-G, and poly-A trimming.
-   - 1-Hamming distance error correction of mutated barcodes.
-   - Yield breakdown and clean FASTQ generation.
+2. **`notebooks/02_alignment_and_quantification.ipynb`**:
+   - Reference indexing and splice-aware mapping with STAR and HISAT2.
+   - SAM/BAM sorting and indexing.
+   - Gene quantification via `featureCounts` and STAR `GeneCounts`.
+   - Unique mapping rate benchmarking.
 
-3. **`notebooks/03_post_qc_and_benchmarking.ipynb`**:
-   - Side-by-side Before vs. After comparison (Q30 gain, read loss reasons).
-   - Knee Plot before vs. after error correction.
-   - Embedded interactive **MultiQC** dashboard.
-   - Downstream alignment commands for STARsolo, Kallisto, and CellRanger.
+3. **`notebooks/03_single_cell_matrix_and_multiqc.ipynb`**:
+   - Load generated `gene_cell_count_matrix.h5ad` into **AnnData**.
+   - Calculate single-cell QC metrics (`total_counts`, `n_genes_by_counts`, `pct_counts_mt`).
+   - Visualize cell distribution metrics.
+   - Compile and view the **MultiQC** interactive report.
 
----
-
-## ⚙️ Custom Configuration (`config/pipeline_config.yaml`)
-
-Edit `config/pipeline_config.yaml` to customize chemistry, trimming thresholds, and file paths:
-
-```yaml
-# Library Chemistry
-chemistry:
-  name: "10x_v3"
-  r1_structure:
-    cell_barcode_len: 16
-    umi_len: 12
-    total_len: 28
-
-# Preprocessing & Trimming Parameters
-preprocessing:
-  threads: 4
-  fastp:
-    qualified_quality_phred: 20
-    unqualified_percent_limit: 30
-    min_length: 25
-    trim_poly_g: true
-    trim_poly_x: true
-    cut_front: true
-    cut_tail: true
-    adapter_sequence_r2: "AAGCAGTGGTATCAACGCAGAGTACATGGG" # 10x TSO
-  
-  barcode_filtering:
-    max_hamming_distance: 1
-    filter_unknown_barcodes: true
-```
-
----
-
-## 🎯 Downstream Alignment Examples
-
-Once cleaned, you can feed the output files directly into standard alignment tools:
-
-### STARsolo
-```bash
-STAR --genomeDir /path/to/star_index \
-     --readFilesIn data/clean/scRNA_sample_01_val_R2.fastq.gz data/clean/scRNA_sample_01_val_R1.fastq.gz \
-     --readFilesCommand zcat \
-     --soloType CB_UMI_Simple \
-     --soloCBwhitelist data/whitelist/737K-august-2016.txt \
-     --soloCBlen 16 --soloUMIlen 12 \
-     --soloStrand Forward \
-     --outSAMtype BAM SortedByCoordinate
-```
-
-### Kallisto / Bustools
-```bash
-kallisto bus -i transcripts.idx -o bus_output/ -x 10xv3 -t 4 \
-  data/clean/scRNA_sample_01_val_R1.fastq.gz data/clean/scRNA_sample_01_val_R2.fastq.gz
-bustools sort -t 4 -o bus_output/sorted.bus bus_output/output.bus
-bustools count -o bus_output/count -g transcripts_to_genes.txt -e bus_output/matrix.ec -t bus_output/transcripts.txt --genecounts bus_output/sorted.bus
-```
+4. **`notebooks/04_downstream_single_cell_analysis.ipynb`**:
+   - Cell & gene QC filtering and mitochondrial thresholding.
+   - Depth normalization and Highly Variable Gene (HVG) selection.
+   - Principal Component Analysis (PCA) & variance explained.
+   - Non-linear UMAP 2D projection and Leiden cluster detection.
+   - Biomarker discovery (Differential Expression) and DotPlot visualization.
 
 ---
 

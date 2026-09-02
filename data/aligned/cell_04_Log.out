@@ -1,0 +1,177 @@
+STAR version=2.7.11b
+STAR compilation time,server,dir=2025-11-14T12:06:42+0000 :/opt/conda/conda-bld/star_1763121846936/work/source
+##### Command Line:
+/home/surj/Workspace/single_cell_pipeline/.pixi/envs/default/bin/STAR-avx2 --genomeDir /home/surj/Workspace/single_cell_pipeline/data/reference/star_index --readFilesIn /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix /home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_ --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --runThreadN 4 --outFilterMultimapNmax 20 --outFilterMismatchNmax 10 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000
+##### Initial USER parameters from Command Line:
+outFileNamePrefix                 /home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_
+###### All USER parameters from Command Line:
+genomeDir                     /home/surj/Workspace/single_cell_pipeline/data/reference/star_index     ~RE-DEFINED
+readFilesIn                   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz        ~RE-DEFINED
+readFilesCommand              zcat        ~RE-DEFINED
+outFileNamePrefix             /home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_     ~RE-DEFINED
+outSAMtype                    BAM   SortedByCoordinate        ~RE-DEFINED
+quantMode                     GeneCounts        ~RE-DEFINED
+runThreadN                    4     ~RE-DEFINED
+outFilterMultimapNmax         20     ~RE-DEFINED
+outFilterMismatchNmax         10     ~RE-DEFINED
+alignIntronMin                20     ~RE-DEFINED
+alignIntronMax                1000000     ~RE-DEFINED
+alignMatesGapMax              1000000     ~RE-DEFINED
+##### Finished reading parameters from all sources
+
+##### Final user re-defined parameters-----------------:
+runThreadN                        4
+genomeDir                         /home/surj/Workspace/single_cell_pipeline/data/reference/star_index
+readFilesIn                       /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz   
+readFilesCommand                  zcat   
+outFileNamePrefix                 /home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_
+outSAMtype                        BAM   SortedByCoordinate   
+outFilterMultimapNmax             20
+outFilterMismatchNmax             10
+alignIntronMin                    20
+alignIntronMax                    1000000
+alignMatesGapMax                  1000000
+quantMode                         GeneCounts   
+
+-------------------------------
+##### Final effective command line:
+/home/surj/Workspace/single_cell_pipeline/.pixi/envs/default/bin/STAR-avx2   --runThreadN 4   --genomeDir /home/surj/Workspace/single_cell_pipeline/data/reference/star_index   --readFilesIn /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz      --readFilesCommand zcat      --outFileNamePrefix /home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_   --outSAMtype BAM   SortedByCoordinate      --outFilterMultimapNmax 20   --outFilterMismatchNmax 10   --alignIntronMin 20   --alignIntronMax 1000000   --alignMatesGapMax 1000000   --quantMode GeneCounts   
+----------------------------------------
+
+Number of fastq files for each mate = 1
+
+   Input read files for mate 1 :
+-rw-r--r-- 1 surj surj 39186 ก.ย.   2 11:39 /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz
+
+   readsCommandsFile:
+exec > "/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04__STARtmp/tmp.fifo.read1"
+echo FILE 0
+zcat      "/home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz"
+
+
+   Input read files for mate 2 :
+-rw-r--r-- 1 surj surj 39454 ก.ย.   2 11:39 /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz
+
+   readsCommandsFile:
+exec > "/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04__STARtmp/tmp.fifo.read2"
+echo FILE 0
+zcat      "/home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz"
+
+ParametersSolo: --soloCellFilterType CellRanger2.2 filtering parameters:  3000 0.99 10
+WARNING: --limitBAMsortRAM=0, will use genome size as RAM limit for BAM sorting
+Finished loading and checking parameters
+Reading genome generation parameters:
+### /home/surj/Workspace/single_cell_pipeline/.pixi/envs/default/bin/STAR-avx2   --runMode genomeGenerate      --runThreadN 4   --genomeDir data/reference/star_index   --genomeFastaFiles data/reference/mini_genome.fa      --genomeSAindexNbases 6   --sjdbGTFfile data/reference/mini_genes.gtf
+### GstrandBit=32
+versionGenome                 2.7.4a     ~RE-DEFINED
+genomeType                    Full     ~RE-DEFINED
+genomeFastaFiles              data/reference/mini_genome.fa        ~RE-DEFINED
+genomeSAindexNbases           6     ~RE-DEFINED
+genomeChrBinNbits             18     ~RE-DEFINED
+genomeSAsparseD               1     ~RE-DEFINED
+genomeTransformType           None     ~RE-DEFINED
+genomeTransformVCF            -     ~RE-DEFINED
+sjdbOverhang                  100     ~RE-DEFINED
+sjdbFileChrStartEnd           -        ~RE-DEFINED
+sjdbGTFfile                   data/reference/mini_genes.gtf     ~RE-DEFINED
+sjdbGTFchrPrefix              -     ~RE-DEFINED
+sjdbGTFfeatureExon            exon     ~RE-DEFINED
+sjdbGTFtagExonParentTranscripttranscript_id     ~RE-DEFINED
+sjdbGTFtagExonParentGene      gene_id     ~RE-DEFINED
+sjdbInsertSave                Basic     ~RE-DEFINED
+genomeFileSizes               266767   184597        ~RE-DEFINED
+Genome version is compatible with current STAR
+Number of real (reference) chromosomes= 1
+1	chr1	17775	0
+--sjdbOverhang = 100 taken from the generated genome
+Started loading the genome: Wed Sep  2 11:39:54 2026
+
+Genome: size given as a parameter = 266767
+SA: size given as a parameter = 184597
+SAindex: size given as a parameter = 1
+Read from SAindex: pGe.gSAindexNbases=6  nSAi=5460
+nGenome=266767;  nSAbyte=184597
+GstrandBit=32   SA number of indices=44750
+Shared memory is not used for genomes. Allocated a private copy of the genome.
+Genome file size: 266767 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading Genome ... done! state: good=1 eof=0 fail=0 bad=0; loaded 266767 bytes
+SA file size: 184597 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading SA ... done! state: good=1 eof=0 fail=0 bad=0; loaded 184597 bytes
+Loading SAindex ... done: 23955 bytes
+Finished loading the genome: Wed Sep  2 11:39:54 2026
+
+Processing splice junctions database sjdbN=23,   pGe.sjdbOverhang=100 
+To accommodate alignIntronMax=1000000 redefined winBinNbits=18
+To accommodate alignIntronMax=1000000 and alignMatesGapMax=1000000, redefined winFlankNbins=4 and winAnchorDistNbins=8
+Created thread # 1
+Starting to map file # 0
+mate 1:   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R1.fastq.gz
+mate 2:   /home/surj/Workspace/single_cell_pipeline/data/clean/cell_04_val_R2.fastq.gz
+Created thread # 2
+Created thread # 3
+Thread #1 end of input stream, nextChar=-1
+Completed: thread #2
+Completed: thread #0
+Completed: thread #3
+BAM sorting: 1034 mapped reads
+BAM sorting bins genomic start loci:
+1	0	340
+2	0	418
+3	0	669
+4	0	780
+5	0	834
+6	0	927
+7	0	1149
+8	0	1381
+9	0	1471
+10	0	1526
+11	0	1731
+12	0	1793
+13	0	2038
+14	0	2096
+15	0	2156
+16	0	2223
+17	0	2792
+18	0	3012
+19	0	3508
+20	0	3638
+21	0	3967
+22	0	4266
+23	0	5448
+24	0	5946
+25	0	6301
+26	0	6910
+27	0	7054
+28	0	7386
+29	0	8816
+30	0	9153
+31	0	9287
+32	0	9551
+33	0	9675
+34	0	9995
+35	0	10908
+36	0	12388
+37	0	13201
+38	0	13698
+39	0	13995
+40	0	14317
+41	0	14608
+42	0	15072
+43	0	15349
+44	0	15687
+45	0	15799
+46	0	16043
+47	0	16456
+48	0	16879
+Completed: thread #1
+Joined thread # 1
+Joined thread # 2
+Joined thread # 3
+Sep 02 11:39:54 ..... finished mapping
+RAM after mapping:
+VmPeak:	  837948 kB; VmSize:	  772412 kB; VmHWM:	  409800 kB; VmRSS:	  409800 kB; 
+RAM after freeing genome index memory:
+VmPeak:	  837948 kB; VmSize:	  771964 kB; VmHWM:	  409728 kB; VmRSS:	  409360 kB; 
+Sep 02 11:39:54 ..... started sorting BAM
+Max memory needed for sorting = 6696
+ALL DONE!

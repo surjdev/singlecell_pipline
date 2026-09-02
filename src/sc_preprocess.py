@@ -1,252 +1,158 @@
 """
-Single-Cell FASTQ Preprocessing Engine.
-Performs:
-1. Fastp adapter trimming, poly-G / poly-A removal, and quality filtering.
-2. Barcode error-correction against 10x whitelist (1-Hamming distance).
-3. Header extraction or paired cleaned FASTQ generation.
+Smart-seq2 & Full-Length scRNA-seq FASTQ Preprocessing Engine.
+Performs paired-end trimming via fastp: Nextera adapter trimming,
+ISPCR oligo removal, poly-G/poly-X tail trimming, sliding-window quality filtering.
 """
 
-import gzip
 import json
-import shutil
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Set, Tuple
-from collections import defaultdict
+from typing import Dict, Any, List, Tuple
 from rich.console import Console
+from rich.table import Table
 
-from src.utils import run_cmd, ensure_dir, print_summary_table
+from src.utils import run_cmd, ensure_dir, load_config
 
 console = Console()
 
-class SingleCellPreprocessor:
+class SmartSeq2Preprocessor:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.paths = config["paths"]
-        self.prep_cfg = config.get("preprocessing", {})
-        self.chem_cfg = config.get("chemistry", {})
+        self.prep_cfg = config["preprocessing"]
+        self.fastp_cfg = self.prep_cfg.get("fastp", {})
+        self.threads = self.prep_cfg.get("threads", 4)
         
-        self.cb_len = self.chem_cfg.get("r1_structure", {}).get("cell_barcode_len", 16)
-        self.umi_len = self.chem_cfg.get("r1_structure", {}).get("umi_len", 12)
+        self.raw_dir = Path(self.paths["raw_dir"])
+        self.clean_dir = ensure_dir(self.paths["clean_dir"])
+        self.reports_dir = ensure_dir(self.paths.get("fastp_dir", "reports/fastp"))
         
-    def _build_whitelist_lookup(self, whitelist_file: str | Path) -> Tuple[Set[str], Dict[str, str]]:
-        """
-        Build exact whitelist set and 1-Hamming distance error correction lookup.
-        """
-        exact_wl = set()
-        correction_map = {}
-        conflict_set = set()
-        
-        wl_p = Path(whitelist_file)
-        if not wl_p.exists():
-            console.print(f"[yellow]Warning: Whitelist file {whitelist_file} not found. Error correction disabled.[/yellow]")
-            return exact_wl, correction_map
-            
-        with open(wl_p, "r") as f:
-            for line in f:
-                bc = line.strip().split()[0]
-                if bc:
-                    exact_wl.add(bc)
-                    
-        console.print(f"Building 1-Hamming distance index for {len(exact_wl):,} barcodes...")
-        # Precompute 1-bp mutations for fast O(1) correction
-        for true_bc in exact_wl:
-            for i in range(len(true_bc)):
-                for alt in ['A', 'C', 'G', 'T']:
-                    if alt != true_bc[i]:
-                        mutated = true_bc[:i] + alt + true_bc[i+1:]
-                        if mutated in exact_wl:
-                            continue # True barcode collision
-                        if mutated in correction_map:
-                            # Ambiguous 1-bp neighbor pointing to two true barcodes -> mark as conflict
-                            conflict_set.add(mutated)
-                        else:
-                            correction_map[mutated] = true_bc
-                            
-        # Remove ambiguous conflicts
-        for conf in conflict_set:
-            if conf in correction_map:
-                del correction_map[conf]
+    def find_cell_samples(self) -> List[Tuple[str, Path, Path]]:
+        """Discover paired-end FASTQ samples in raw_dir."""
+        r1_files = sorted(list(self.raw_dir.glob("*_R1.fastq.gz")) + list(self.raw_dir.glob("*_1.fastq.gz")))
+        samples = []
+        for r1 in r1_files:
+            if "_R1.fastq.gz" in r1.name:
+                cell_id = r1.name.replace("_R1.fastq.gz", "")
+                r2 = self.raw_dir / f"{cell_id}_R2.fastq.gz"
+            else:
+                cell_id = r1.name.replace("_1.fastq.gz", "")
+                r2 = self.raw_dir / f"{cell_id}_2.fastq.gz"
                 
-        console.print(f"  ✔ Whitelist loaded: {len(exact_wl):,} exact barcodes, {len(correction_map):,} correctable 1-bp mutants indexed.")
-        return exact_wl, correction_map
+            if r2.exists():
+                samples.append((cell_id, r1, r2))
+            else:
+                console.print(f"[yellow]Warning: Mate R2 not found for {r1.name}[/yellow]")
+        return samples
 
-    def run_fastp_trimming(
-        self,
-        r1_in: str | Path,
-        r2_in: str | Path,
-        r1_out: str | Path,
-        r2_out: str | Path,
-        report_html: str | Path,
-        report_json: str | Path
-    ) -> Dict[str, Any]:
-        """
-        Run fastp for adapter trimming, poly-G/poly-X removal, and quality filtering.
-        """
-        threads = self.prep_cfg.get("threads", 4)
-        fp_cfg = self.prep_cfg.get("fastp", {})
+    def trim_sample(self, cell_id: str, r1_in: Path, r2_in: Path) -> Dict[str, Any]:
+        """Run fastp paired-end trimming for a single cell."""
+        out_r1 = self.clean_dir / f"{cell_id}_val_R1.fastq.gz"
+        out_r2 = self.clean_dir / f"{cell_id}_val_R2.fastq.gz"
+        html_report = self.reports_dir / f"{cell_id}_fastp.html"
+        json_report = self.reports_dir / f"{cell_id}_fastp.json"
         
         cmd = [
             "fastp",
             "-i", str(r1_in),
             "-I", str(r2_in),
-            "-o", str(r1_out),
-            "-O", str(r2_out),
-            "--html", str(report_html),
-            "--json", str(report_json),
-            "--thread", str(threads),
-            f"--qualified_quality_phred={fp_cfg.get('qualified_quality_phred', 20)}",
-            f"--unqualified_percent_limit={fp_cfg.get('unqualified_percent_limit', 30)}",
-            f"--n_base_limit={fp_cfg.get('n_base_limit', 3)}",
-            f"--length_required={fp_cfg.get('min_length', 25)}",
+            "-o", str(out_r1),
+            "-O", str(out_r2),
+            "-h", str(html_report),
+            "-j", str(json_report),
+            "-w", str(self.threads),
+            "-q", str(self.fastp_cfg.get("qualified_quality_phred", 20)),
+            "-u", str(self.fastp_cfg.get("unqualified_percent_limit", 30)),
+            "-n", str(self.fastp_cfg.get("n_base_limit", 3)),
+            "-l", str(self.fastp_cfg.get("min_length", 25))
         ]
         
-        if fp_cfg.get("trim_poly_g", True):
+        # Poly-G trimming
+        if self.fastp_cfg.get("trim_poly_g", True):
             cmd.append("--trim_poly_g")
-            cmd.append(f"--poly_g_min_len={fp_cfg.get('poly_g_min_len', 10)}")
+            cmd.extend(["--poly_g_min_len", str(self.fastp_cfg.get("poly_g_min_len", 10))])
             
-        if fp_cfg.get("trim_poly_x", True):
+        # Poly-X trimming
+        if self.fastp_cfg.get("trim_poly_x", True):
             cmd.append("--trim_poly_x")
-            cmd.append(f"--poly_x_min_len={fp_cfg.get('poly_x_min_len', 10)}")
+            cmd.extend(["--poly_x_min_len", str(self.fastp_cfg.get("poly_x_min_len", 10))])
             
-        if fp_cfg.get("cut_front", True):
+        # Cut front / tail
+        if self.fastp_cfg.get("cut_front", True):
             cmd.append("--cut_front")
-            cmd.append(f"--cut_front_window_size={fp_cfg.get('cut_front_window_size', 4)}")
-            cmd.append(f"--cut_front_mean_quality={fp_cfg.get('cut_front_mean_quality', 20)}")
+            cmd.extend(["--cut_front_window_size", str(self.fastp_cfg.get("cut_front_window_size", 4))])
+            cmd.extend(["--cut_front_mean_quality", str(self.fastp_cfg.get("cut_front_mean_quality", 20))])
             
-        if fp_cfg.get("cut_tail", True):
+        if self.fastp_cfg.get("cut_tail", True):
             cmd.append("--cut_tail")
-            cmd.append(f"--cut_tail_window_size={fp_cfg.get('cut_tail_window_size', 4)}")
-            cmd.append(f"--cut_tail_mean_quality={fp_cfg.get('cut_tail_mean_quality', 20)}")
+            cmd.extend(["--cut_tail_window_size", str(self.fastp_cfg.get("cut_tail_window_size", 4))])
+            cmd.extend(["--cut_tail_mean_quality", str(self.fastp_cfg.get("cut_tail_mean_quality", 20))])
             
-        adapter = fp_cfg.get("adapter_sequence_r2")
-        if adapter:
-            cmd.append(f"--adapter_sequence_r2={adapter}")
-        else:
-            cmd.append("--disable_adapter_trimming")
-        
-        ensure_dir(Path(r1_out).parent)
-        ensure_dir(Path(report_html).parent)
-        
-        run_cmd(cmd, desc="Running Fastp Adapter & Quality Trimming")
-        
-        # Parse fastp JSON report
-        with open(report_json, "r") as f:
-            fp_stats = json.load(f)
+        # Adapter sequence
+        adapter1 = self.fastp_cfg.get("adapter_sequence")
+        if adapter1:
+            cmd.extend(["--adapter_sequence", adapter1])
+        adapter2 = self.fastp_cfg.get("adapter_sequence_r2")
+        if adapter2:
+            cmd.extend(["--adapter_sequence_r2", adapter2])
             
-        return fp_stats
+        run_cmd(cmd, desc=f"fastp trimming [{cell_id}]")
+        
+        # Parse JSON summary
+        metrics = {"cell_id": cell_id}
+        if json_report.exists():
+            with open(json_report, "r") as f:
+                data = json.load(f)
+                summary = data.get("summary", {})
+                before = summary.get("before_filtering", {})
+                after = summary.get("after_filtering", {})
+                metrics.update({
+                    "raw_reads": before.get("total_reads", 0),
+                    "clean_reads": after.get("total_reads", 0),
+                    "raw_q30_rate": before.get("q30_rate", 0.0),
+                    "clean_q30_rate": after.get("q30_rate", 0.0),
+                    "passed_filter_rate": (after.get("total_reads", 0) / max(1, before.get("total_reads", 1))),
+                    "adapter_trimmed_reads": data.get("adapter_cutting", {}).get("adapter_trimmed_reads", 0)
+                })
+        return metrics
 
-    def filter_and_correct_barcodes(
-        self,
-        r1_in: str | Path,
-        r2_in: str | Path,
-        r1_out: str | Path,
-        r2_out: str | Path,
-        extracted_out: Optional[str | Path] = None,
-        whitelist_file: Optional[str | Path] = None
-    ) -> Dict[str, Any]:
-        """
-        Process trimmed paired FASTQ:
-        1. Validate CB against whitelist
-        2. Correct 1-bp mismatch CB
-        3. Write filtered clean paired FASTQ and/or extracted single FASTQ (cDNA with @NAME_CB_UMI header)
-        """
-        wl_path = whitelist_file or self.paths.get("whitelist_file")
-        exact_wl, correction_map = self._build_whitelist_lookup(wl_path)
+    def run_all(self) -> List[Dict[str, Any]]:
+        """Run fastp trimming across all discovered cells."""
+        samples = self.find_cell_samples()
+        if not samples:
+            console.print(f"[yellow]No sample FASTQs found in {self.raw_dir}[/yellow]")
+            return []
+            
+        console.print(f"[bold cyan]Found {len(samples)} cell FASTQ pair(s). Starting fastp preprocessing...[/bold cyan]")
+        results = []
+        for cell_id, r1, r2 in samples:
+            m = self.trim_sample(cell_id, r1, r2)
+            results.append(m)
+            
+        # Print summary table
+        table = Table(title="Smart-seq2 fastp Preprocessing Summary", header_style="bold magenta", border_style="cyan")
+        table.add_column("Cell ID", style="bold white")
+        table.add_column("Raw Reads", justify="right")
+        table.add_column("Clean Reads", justify="right")
+        table.add_column("Passed Filter", justify="right", style="green")
+        table.add_column("Raw Q30", justify="right")
+        table.add_column("Clean Q30", justify="right", style="cyan")
         
-        console.print(f"[bold cyan]Filtering and error-correcting cell barcodes...[/bold cyan]")
-        
-        ensure_dir(Path(r1_out).parent)
-        
-        open_r1_in = gzip.open(r1_in, "rt") if str(r1_in).endswith(".gz") else open(r1_in, "rt")
-        open_r2_in = gzip.open(r2_in, "rt") if str(r2_in).endswith(".gz") else open(r2_in, "rt")
-        
-        open_r1_out = gzip.open(r1_out, "wt")
-        open_r2_out = gzip.open(r2_out, "wt")
-        open_ext_out = gzip.open(extracted_out, "wt") if extracted_out else None
-        
-        total_reads = 0
-        passed_exact = 0
-        passed_corrected = 0
-        discarded_invalid = 0
-        discarded_short = 0
-        
-        try:
-            while True:
-                r1_h = open_r1_in.readline()
-                if not r1_h:
-                    break
-                r1_s = open_r1_in.readline().strip()
-                r1_p = open_r1_in.readline()
-                r1_q = open_r1_in.readline().strip()
-                
-                r2_h = open_r2_in.readline()
-                r2_s = open_r2_in.readline().strip()
-                r2_p = open_r2_in.readline()
-                r2_q = open_r2_in.readline().strip()
-                
-                total_reads += 1
-                
-                # Check R1 length for full CB + UMI
-                req_r1_len = self.cb_len + self.umi_len
-                if len(r1_s) < req_r1_len:
-                    discarded_short += 1
-                    continue
-                    
-                cb = r1_s[:self.cb_len]
-                umi = r1_s[self.cb_len:req_r1_len]
-                cb_q = r1_q[:self.cb_len]
-                umi_q = r1_q[self.cb_len:req_r1_len]
-                
-                corrected_cb = cb
-                is_valid = True
-                
-                if exact_wl:
-                    if cb in exact_wl:
-                        passed_exact += 1
-                    elif cb in correction_map:
-                        corrected_cb = correction_map[cb]
-                        passed_corrected += 1
-                    else:
-                        discarded_invalid += 1
-                        is_valid = False
-                else:
-                    passed_exact += 1
-                    
-                if not is_valid:
-                    continue
-                    
-                # Write to clean paired FASTQ
-                new_r1_seq = corrected_cb + umi
-                new_r1_qual = cb_q + umi_q
-                
-                open_r1_out.write(f"{r1_h.strip()}\n{new_r1_seq}\n+\n{new_r1_qual}\n")
-                open_r2_out.write(f"{r2_h.strip()}\n{r2_s}\n+\n{r2_q}\n")
-                
-                # Write to extracted FASTQ if requested (standard UMI-tools / Kallisto format)
-                if open_ext_out:
-                    read_id = r2_h.strip().split()[0]
-                    ext_header = f"{read_id}_{corrected_cb}_{umi} {r2_h.strip().split()[1] if len(r2_h.strip().split()) > 1 else '1:N:0:0'}"
-                    open_ext_out.write(f"{ext_header}\n{r2_s}\n+\n{r2_q}\n")
+        for r in results:
+            table.add_row(
+                r["cell_id"],
+                f"{r.get('raw_reads', 0):,}",
+                f"{r.get('clean_reads', 0):,}",
+                f"{r.get('passed_filter_rate', 0.0)*100:.1f}%",
+                f"{r.get('raw_q30_rate', 0.0)*100:.1f}%",
+                f"{r.get('clean_q30_rate', 0.0)*100:.1f}%"
+            )
+        console.print(table)
+        return results
 
-        finally:
-            open_r1_in.close()
-            open_r2_in.close()
-            open_r1_out.close()
-            open_r2_out.close()
-            if open_ext_out:
-                open_ext_out.close()
-                
-        total_kept = passed_exact + passed_corrected
-        stats = {
-            "input_reads": total_reads,
-            "passed_reads": total_kept,
-            "passed_fraction": total_kept / max(1, total_reads),
-            "exact_whitelist_matches": passed_exact,
-            "exact_match_fraction": passed_exact / max(1, total_reads),
-            "corrected_1bp_mismatches": passed_corrected,
-            "corrected_fraction": passed_corrected / max(1, total_reads),
-            "discarded_invalid_barcodes": discarded_invalid,
-            "discarded_short_reads": discarded_short
-        }
-        
-        return stats
+def main():
+    config = load_config()
+    preprocessor = SmartSeq2Preprocessor(config)
+    preprocessor.run_all()
+
+if __name__ == "__main__":
+    main()

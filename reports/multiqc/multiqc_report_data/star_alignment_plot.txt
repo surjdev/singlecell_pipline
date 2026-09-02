@@ -1,0 +1,9 @@
+Sample	Uniquely mapped	Mapped to multiple loci	Unmapped: too short
+cell_01	483.0	17.0	0.0
+cell_02	479.0	21.0	0.0
+cell_03	484.0	16.0	0.0
+cell_04	483.0	17.0	0.0
+cell_05	486.0	14.0	0.0
+cell_06	483.0	16.0	1.0
+cell_07	479.0	21.0	0.0
+cell_08	481.0	19.0	0.0

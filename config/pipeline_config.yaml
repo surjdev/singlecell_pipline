@@ -1,39 +1,32 @@
-# Single-Cell RAW to Clean FASTQ Preprocessing Configuration
-# -------------------------------------------------------------
+# Smart-seq2 / Plate-based scRNA-seq & Transcriptomic Pipeline Configuration
+# ----------------------------------------------------------------------------
 
 project:
-  name: "single_cell_sample_experiment"
-  sample_id: "scRNA_sample_01"
-  description: "10x Chromium 3' v3 scRNA-seq preprocessing pipeline"
+  name: "smartseq2_experiment"
+  protocol: "smartseq2"  # Options: smartseq2, transcriptomic_bulk
+  description: "Smart-seq2 single-cell RNA-seq upstream & downstream processing"
 
 # Paths Configuration
 paths:
   raw_dir: "data/raw"
   clean_dir: "data/clean"
+  aligned_dir: "data/aligned"
+  counts_dir: "data/counts"
   reports_dir: "reports"
   qc_raw_dir: "reports/qc_raw"
   qc_clean_dir: "reports/qc_clean"
+  fastp_dir: "reports/fastp"
   multiqc_dir: "reports/multiqc"
-  whitelist_file: "data/whitelist/737K-august-2016.txt"
-  sample_r1: "data/raw/scRNA_sample_01_R1.fastq.gz"
-  sample_r2: "data/raw/scRNA_sample_01_R2.fastq.gz"
-  clean_r1: "data/clean/scRNA_sample_01_val_R1.fastq.gz"
-  clean_r2: "data/clean/scRNA_sample_01_val_R2.fastq.gz"
-  extracted_fastq: "data/clean/scRNA_sample_01_extracted.fastq.gz"
+  downstream_dir: "reports/downstream"
+  reference_dir: "data/reference"
+  genome_fasta: "data/reference/mini_genome.fa"
+  gtf_file: "data/reference/mini_genes.gtf"
+  star_index_dir: "data/reference/star_index"
+  hisat2_index_prefix: "data/reference/hisat2_index/genome"
+  input_h5ad: "data/counts/gene_cell_count_matrix.h5ad"
+  processed_h5ad: "data/counts/processed_adata.h5ad"
 
-# Library Chemistry & Structure
-chemistry:
-  name: "10x_v3"
-  description: "10x Genomics Chromium 3' v3"
-  r1_structure:
-    cell_barcode_len: 16
-    umi_len: 12
-    total_len: 28
-  r2_structure:
-    cdna_min_len: 30
-    typical_len: 91
-
-# Preprocessing & Trimming Parameters
+# Library Chemistry & Trimming Parameters (fastp)
 preprocessing:
   threads: 4
   fastp:
@@ -51,18 +44,64 @@ preprocessing:
     cut_tail: true
     cut_tail_window_size: 4
     cut_tail_mean_quality: 20
-    adapter_sequence_r2: "AAGCAGTGGTATCAACGCAGAGTACATGGG" # 10x template switch oligo / adapter
-  
-  barcode_filtering:
-    max_hamming_distance: 1
-    filter_unknown_barcodes: true
-    min_cell_reads: 10
-    extract_to_header: true # Embed CB and UMI in FASTQ read header (compatible with Kallisto/STARsolo/UMI-tools)
+    adapter_sequence: "CTGTCTCTTATACACATCT"
+    adapter_sequence_r2: "CTGTCTCTTATACACATCT"
 
-# QC Quality Thresholds
+# Alignment Configuration (STAR & HISAT2)
+alignment:
+  default_aligner: "star"  # Options: "star", "hisat2"
+  threads: 4
+  star:
+    outSAMtype: "BAM SortedByCoordinate"
+    quantMode: "GeneCounts"
+    outFilterMultimapNmax: 20
+    outFilterMismatchNmax: 10
+    alignIntronMin: 20
+    alignIntronMax: 1000000
+    alignMatesGapMax: 1000000
+    genomeSAindexNbases: 6
+  hisat2:
+    dta: true
+    threads: 4
+
+# Quantification Configuration (featureCounts & STAR Counts)
+quantification:
+  default_method: "featurecounts"  # Options: "featurecounts", "star"
+  threads: 4
+  featurecounts:
+    feature_type: "exon"
+    attribute_type: "gene_id"
+    is_paired_end: true
+    count_read_pairs: true
+    strand_specificity: 0
+    min_overlap: 1
+    extra_args: "-Q 10"
+
+# Downstream Single-Cell Analysis Parameters (Scanpy, UMAP, Leiden)
+downstream:
+  filtering:
+    min_genes_per_cell: 5
+    min_cells_per_gene: 2
+    max_pct_mito: 25.0
+  normalization:
+    target_sum: 10000.0
+    log1p: true
+  feature_selection:
+    n_top_genes: 2000
+    flavor: "seurat"
+  dim_reduction:
+    n_pcs: 10
+    n_neighbors: 5
+  clustering:
+    resolution: 0.5
+    algorithm: "leiden"
+  marker_discovery:
+    n_genes: 10
+    method: "wilcoxon"
+
+# Single-Cell QC Thresholds
 qc_thresholds:
-  min_q30_cell_barcode: 0.85
-  min_q30_umi: 0.80
-  min_q30_rna_read: 0.75
-  min_valid_barcode_fraction: 0.80
-  min_usable_reads_fraction: 0.70
+  min_total_counts: 100
+  min_detected_genes: 5
+  max_mito_percent: 25.0
+  min_mapping_rate: 60.0

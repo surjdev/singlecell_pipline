@@ -1,0 +1,87 @@
+Module	Section	Sample Name	Source
+fastp	all_sections	scRNA_sample_01	/home/surj/Workspace/single_cell_pipeline/reports/fastp/nb_fastp.json
+fastp	all_sections	cell_01	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_01_fastp.json
+fastp	all_sections	cell_02	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_02_fastp.json
+fastp	all_sections	cell_03	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_03_fastp.json
+fastp	all_sections	cell_04	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_04_fastp.json
+fastp	all_sections	cell_05	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_05_fastp.json
+fastp	all_sections	cell_06	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_06_fastp.json
+fastp	all_sections	cell_07	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_07_fastp.json
+fastp	all_sections	cell_08	/home/surj/Workspace/single_cell_pipeline/reports/fastp/cell_08_fastp.json
+FastQC	all_sections	scRNA_sample_01_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/scRNA_sample_01_R1_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/scRNA_sample_01_R2_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/scRNA_sample_01_val_R1_fastqc.zip
+FastQC	all_sections	scRNA_sample_01_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/scRNA_sample_01_val_R2_fastqc.zip
+FastQC	all_sections	cell_01_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_01_R1_fastqc.zip
+FastQC	all_sections	cell_01_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_01_R2_fastqc.zip
+FastQC	all_sections	cell_01_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_01_val_R1_fastqc.zip
+FastQC	all_sections	cell_01_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_01_val_R2_fastqc.zip
+FastQC	all_sections	cell_02_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_02_R1_fastqc.zip
+FastQC	all_sections	cell_02_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_02_R2_fastqc.zip
+FastQC	all_sections	cell_02_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_02_val_R1_fastqc.zip
+FastQC	all_sections	cell_02_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_02_val_R2_fastqc.zip
+FastQC	all_sections	cell_03_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_03_R1_fastqc.zip
+FastQC	all_sections	cell_03_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_03_R2_fastqc.zip
+FastQC	all_sections	cell_03_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_03_val_R1_fastqc.zip
+FastQC	all_sections	cell_03_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_03_val_R2_fastqc.zip
+FastQC	all_sections	cell_04_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_04_R1_fastqc.zip
+FastQC	all_sections	cell_04_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_04_R2_fastqc.zip
+FastQC	all_sections	cell_04_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_04_val_R1_fastqc.zip
+FastQC	all_sections	cell_04_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_04_val_R2_fastqc.zip
+FastQC	all_sections	cell_05_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_05_R1_fastqc.zip
+FastQC	all_sections	cell_05_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_05_R2_fastqc.zip
+FastQC	all_sections	cell_05_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_05_val_R1_fastqc.zip
+FastQC	all_sections	cell_05_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_05_val_R2_fastqc.zip
+FastQC	all_sections	cell_06_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_06_R1_fastqc.zip
+FastQC	all_sections	cell_06_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_06_R2_fastqc.zip
+FastQC	all_sections	cell_06_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_06_val_R1_fastqc.zip
+FastQC	all_sections	cell_06_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_06_val_R2_fastqc.zip
+FastQC	all_sections	cell_07_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_07_R1_fastqc.zip
+FastQC	all_sections	cell_07_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_07_R2_fastqc.zip
+FastQC	all_sections	cell_07_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_07_val_R1_fastqc.zip
+FastQC	all_sections	cell_07_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_07_val_R2_fastqc.zip
+FastQC	all_sections	cell_08_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_08_R1_fastqc.zip
+FastQC	all_sections	cell_08_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_raw/cell_08_R2_fastqc.zip
+FastQC	all_sections	cell_08_val_R1	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_08_val_R1_fastqc.zip
+FastQC	all_sections	cell_08_val_R2	/home/surj/Workspace/single_cell_pipeline/reports/qc_clean/cell_08_val_R2_fastqc.zip
+featureCounts	all_sections	cell_01	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_02	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_03	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_04	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_05	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_06	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_07	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_08	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_01_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_02_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_03_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_04_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_05_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_06_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_07_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+featureCounts	all_sections	cell_08_hisat2_sorted	/home/surj/Workspace/single_cell_pipeline/data/counts/featureCounts_raw.txt.summary
+Snippy	snippy	multiqc	/home/surj/Workspace/single_cell_pipeline/reports/multiqc/multiqc_report_data/multiqc.log
+STAR	SummaryLog	cell_01	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_01_Log.final.out
+STAR	SummaryLog	cell_02	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_02_Log.final.out
+STAR	SummaryLog	cell_03	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_03_Log.final.out
+STAR	SummaryLog	cell_04	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_Log.final.out
+STAR	SummaryLog	cell_05	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_05_Log.final.out
+STAR	SummaryLog	cell_06	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_06_Log.final.out
+STAR	SummaryLog	cell_07	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_07_Log.final.out
+STAR	SummaryLog	cell_08	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_08_Log.final.out
+STAR	ReadsPerGene	cell_01	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_01_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_02	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_02_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_03	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_03_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_04	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_05	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_05_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_06	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_06_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_07	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_07_ReadsPerGene.out.tab
+STAR	ReadsPerGene	cell_08	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_08_ReadsPerGene.out.tab
+Bowtie 2 / HiSAT2	all_sections	cell_01_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_01_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_02_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_02_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_03_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_03_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_04_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_04_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_05_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_05_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_06_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_06_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_07_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_07_hisat2.log
+Bowtie 2 / HiSAT2	all_sections	cell_08_hisat2	/home/surj/Workspace/single_cell_pipeline/data/aligned/cell_08_hisat2.log

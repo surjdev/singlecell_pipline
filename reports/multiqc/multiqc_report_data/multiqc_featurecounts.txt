@@ -1,0 +1,9 @@
+Sample	Total	Assigned	Unassigned_Unmapped	Unassigned_Read_Type	Unassigned_Singleton	Unassigned_MappingQuality	Unassigned_Chimera	Unassigned_FragmentLength	Unassigned_Duplicate	Unassigned_MultiMapping	Unassigned_Secondary	Unassigned_NonSplit	Unassigned_NoFeatures	Unassigned_Overlapping_Length	Unassigned_Ambiguity	percent_assigned
+cell_01	518	396	0	0	0	0	0	0	0	35	0	0	76	0	11	76.44787644787645
+cell_02	521	386	0	0	0	0	0	0	0	42	0	0	83	0	10	74.08829174664108
+cell_03	516	374	0	0	0	0	0	0	0	32	0	0	93	0	17	72.48062015503875
+cell_04	517	381	0	0	0	0	0	0	0	34	0	0	79	0	23	73.69439071566731
+cell_05	514	389	0	0	0	0	0	0	0	28	0	0	79	0	18	75.68093385214007
+cell_06	515	380	0	0	0	0	0	0	0	32	0	0	58	0	45	73.7864077669903
+cell_07	522	377	0	0	0	0	0	0	0	43	0	0	72	0	30	72.22222222222221
+cell_08	519	388	0	0	0	0	0	0	0	38	0	0	60	0	33	74.75915221579962

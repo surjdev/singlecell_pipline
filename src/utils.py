@@ -15,21 +15,44 @@ from rich.table import Table
 from rich.panel import Panel
 
 console = Console()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 def load_config(config_path: str = "config/pipeline_config.yaml") -> Dict[str, Any]:
-    """Load and validate pipeline configuration YAML file."""
+    """Load and validate pipeline configuration YAML file, resolving paths to absolute paths."""
     path = Path(config_path)
     if not path.exists():
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        alt_path = PROJECT_ROOT / config_path
+        if alt_path.exists():
+            path = alt_path
+        else:
+            default_p = PROJECT_ROOT / "config/pipeline_config.yaml"
+            if default_p.exists():
+                path = default_p
+            else:
+                raise FileNotFoundError(f"Configuration file not found: {config_path}")
+                
     with open(path, "r") as f:
         config = yaml.safe_load(f)
+        
+    # Resolve relative paths in paths section against PROJECT_ROOT
+    if "paths" in config:
+        for k, v in config["paths"].items():
+            if isinstance(v, str):
+                p = Path(v)
+                if not p.is_absolute():
+                    config["paths"][k] = str(PROJECT_ROOT / p)
+                    
     return config
 
 def ensure_dir(dir_path: str | Path) -> Path:
     """Ensure directory exists and return Path object."""
     p = Path(dir_path)
+    if not p.is_absolute():
+        p = PROJECT_ROOT / p
     p.mkdir(parents=True, exist_ok=True)
     return p
+
 
 def run_cmd(
     cmd: List[str] | str,

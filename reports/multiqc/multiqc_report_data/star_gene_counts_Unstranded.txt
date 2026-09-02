@@ -1,0 +1,9 @@
+Sample	Overlapping Genes	No Feature	Ambiguous Features	Multimapping	Unmapped
+cell_01	396.0	76.0	11.0	17.0	0.0
+cell_02	386.0	83.0	10.0	21.0	0.0
+cell_03	374.0	93.0	17.0	16.0	0.0
+cell_04	381.0	79.0	23.0	17.0	0.0
+cell_05	389.0	79.0	18.0	14.0	0.0
+cell_06	380.0	58.0	45.0	16.0	1.0
+cell_07	377.0	72.0	30.0	21.0	0.0
+cell_08	388.0	60.0	33.0	19.0	0.0

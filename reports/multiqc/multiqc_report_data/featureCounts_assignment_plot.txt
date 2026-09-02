@@ -1,0 +1,17 @@
+Sample	Assigned	Unassigned: Unmapped	Unassigned: Multi Mapping	Unassigned: No Features	Unassigned: Ambiguity
+cell_01	396.0	0.0	35.0	76.0	11.0
+cell_01_hisat2_sorted	395.0	2.0	0.0	91.0	12.0
+cell_02	386.0	0.0	42.0	83.0	10.0
+cell_02_hisat2_sorted	398.0	1.0	0.0	92.0	9.0
+cell_03	374.0	0.0	32.0	93.0	17.0
+cell_03_hisat2_sorted	374.0	0.0	0.0	108.0	18.0
+cell_04	381.0	0.0	34.0	79.0	23.0
+cell_04_hisat2_sorted	386.0	0.0	0.0	93.0	21.0
+cell_05	389.0	0.0	28.0	79.0	18.0
+cell_05_hisat2_sorted	400.0	0.0	0.0	87.0	13.0
+cell_06	380.0	0.0	32.0	58.0	45.0
+cell_06_hisat2_sorted	397.0	1.0	0.0	69.0	33.0
+cell_07	377.0	0.0	43.0	72.0	30.0
+cell_07_hisat2_sorted	393.0	1.0	0.0	87.0	19.0
+cell_08	388.0	0.0	38.0	60.0	33.0
+cell_08_hisat2_sorted	397.0	1.0	0.0	73.0	29.0
