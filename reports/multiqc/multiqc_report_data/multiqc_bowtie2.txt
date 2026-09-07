@@ -1,9 +1,0 @@
-Sample	total_reads	paired_total	paired_aligned_none	paired_aligned_one	paired_aligned_multi	paired_aligned_discord_one	paired_aligned_mate_none	paired_aligned_mate_one	paired_aligned_mate_multi	overall_alignment_rate	paired_aligned_mate_multi_halved	paired_aligned_mate_none_halved	paired_aligned_mate_one_halved
-cell_01_hisat2	500	500	29	471	0	0	31	27	0	96.9	0.0	15.5	13.5
-cell_02_hisat2	500	500	27	473	0	0	28	26	0	97.2	0.0	14.0	13.0
-cell_03_hisat2	500	500	22	478	0	0	22	22	0	97.8	0.0	11.0	11.0
-cell_04_hisat2	500	500	20	480	0	0	20	20	0	98.0	0.0	10.0	10.0
-cell_05_hisat2	500	500	28	472	0	0	28	28	0	97.2	0.0	14.0	14.0
-cell_06_hisat2	500	500	42	458	0	0	43	41	0	95.7	0.0	21.5	20.5
-cell_07_hisat2	500	500	43	457	0	0	44	42	0	95.6	0.0	22.0	21.0
-cell_08_hisat2	500	500	35	465	0	0	36	34	0	96.4	0.0	18.0	17.0

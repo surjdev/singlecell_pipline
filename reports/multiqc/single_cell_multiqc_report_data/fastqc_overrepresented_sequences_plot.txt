@@ -1,5 +1,0 @@
-Sample	Top overrepresented sequence	Sum of remaining overrepresented sequences
-scRNA_sample_01_R1	0.0	0.0
-scRNA_sample_01_R2	11.17150034254396	88.82849965745604
-scRNA_sample_01_val_R1	0.0	0.0
-scRNA_sample_01_val_R2	10.752836977580959	89.21025924900822

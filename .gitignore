@@ -1,0 +1,23 @@
+# Nextflow execution directories & logs
+.nextflow/
+.nextflow.log*
+work/
+
+# Pipeline temporary/intermediate data
+data/clean/
+data/aligned/
+data/counts/featurecounts_raw.txt*
+results_nextflow/
+_STARtmp/
+
+# Pixi / Conda environment
+.pixi/
+
+# Python cache & Jupyter checkpoints
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db

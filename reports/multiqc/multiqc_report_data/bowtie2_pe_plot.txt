@@ -1,9 +1,0 @@
-Sample	PE mapped uniquely	PE one mate mapped uniquely	PE neither mate aligned
-cell_01_hisat2	471.0	13.5	15.5
-cell_02_hisat2	473.0	13.0	14.0
-cell_03_hisat2	478.0	11.0	11.0
-cell_04_hisat2	480.0	10.0	10.0
-cell_05_hisat2	472.0	14.0	14.0
-cell_06_hisat2	458.0	20.5	21.5
-cell_07_hisat2	457.0	21.0	22.0
-cell_08_hisat2	465.0	17.0	18.0

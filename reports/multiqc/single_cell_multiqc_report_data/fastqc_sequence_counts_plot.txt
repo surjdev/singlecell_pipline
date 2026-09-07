@@ -1,5 +1,0 @@
-Sample	Unique Reads	Duplicate Reads
-scRNA_sample_01_R1	21895.0	0.0
-scRNA_sample_01_R2	20.0	21875.0
-scRNA_sample_01_val_R1	21678.0	0.0
-scRNA_sample_01_val_R2	29.0	21649.0
