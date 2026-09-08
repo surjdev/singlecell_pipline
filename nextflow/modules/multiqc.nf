@@ -10,7 +10,7 @@ process MULTIQC {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     input:
-    path('*')
+    path(qc_files), stageAs: 'inputs??/*'
 
     output:
     path("single_cell_multiqc_report.html"), emit: report
@@ -21,6 +21,7 @@ process MULTIQC {
     multiqc \\
         --filename "single_cell_multiqc_report.html" \\
         --force \\
+        --fullnames \\
         --interactive \\
         .
     """

@@ -6,7 +6,17 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Load configuration before defaults; CLI flags always take precedence.
+args=("$@")
+for ((i=0; i<${#args[@]}; i++)); do
+    if [[ "${args[i]}" == --config || "${args[i]}" == -c ]]; then
+        [[ $((i+1)) -lt ${#args[@]} ]] || { echo "Missing config path" >&2; exit 2; }
+        export CONFIG_FILE="${args[i+1]}"
+        [[ -f "$CONFIG_FILE" ]] || { echo "Config not found: $CONFIG_FILE" >&2; exit 2; }
+    fi
+done
 source "${SCRIPT_DIR}/env.sh"
+OUTPUT_ROOT=""
 
 usage() {
     cat <<EOF
@@ -32,18 +42,40 @@ EOF
 }
 
 while [[ $# -gt 0 ]]; do
+    if [[ "$1" != -h && "$1" != --help && $# -lt 2 ]]; then
+        log_error "Missing value or unknown option: $1"; exit 2
+    fi
     case "$1" in
         -i|--indir)      RAW_DIR="$2"; shift 2 ;;
-        -o|--outdir)     PROJECT_ROOT="$2"; shift 2 ;;
+        -o|--outdir)     OUTPUT_ROOT="$2"; shift 2 ;;
         -g|--gtf)        GTF_FILE="$2"; shift 2 ;;
         -x|--star-index) STAR_INDEX="$2"; shift 2 ;;
         -t|--threads)    THREADS="$2"; shift 2 ;;
-        -c|--config)     source "$2"; shift 2 ;;
+        -c|--config)     shift 2 ;;
         -h|--help)       usage ;;
-        *) log_error "Unknown option: $1"; usage ;;
+        *) log_error "Unknown option: $1"; exit 2 ;;
     esac
 done
 
+if [[ -n "$OUTPUT_ROOT" ]]; then
+    CLEAN_DIR="$OUTPUT_ROOT/data/clean"
+    ALIGNED_DIR="$OUTPUT_ROOT/data/aligned"
+    COUNTS_DIR="$OUTPUT_ROOT/data/counts"
+    REPORTS_DIR="$OUTPUT_ROOT/reports"
+    QC_RAW_DIR="$REPORTS_DIR/qc_raw"
+    QC_CLEAN_DIR="$REPORTS_DIR/qc_clean"
+    FASTP_DIR="$REPORTS_DIR/fastp"
+    MULTIQC_DIR="$REPORTS_DIR/multiqc"
+fi
+[[ "$THREADS" =~ ^[1-9][0-9]*$ ]] || { log_error "threads must be positive"; exit 2; }
+[[ -s "$GTF_FILE" && -s "$STAR_INDEX/Genome" && -s "$STAR_INDEX/SA" ]] || {
+    log_error "Provide a nonempty GTF and complete STAR index before running"; exit 2;
+}
+# Child stages use the resolved configuration without sourcing it again.
+export CONFIG_FILE=/dev/null
+export RAW_DIR CLEAN_DIR ALIGNED_DIR COUNTS_DIR REPORTS_DIR QC_RAW_DIR QC_CLEAN_DIR FASTP_DIR MULTIQC_DIR
+export THREADS STAR_INDEX GTF_FILE STAR_RAM_LIMIT MIN_READ_LENGTH MIN_QUALITY MAX_UNQUALIFIED_PCT
+export ADAPTER_FWD ADAPTER_REV STRANDEDNESS FEATURE_TYPE ATTRIBUTE_TYPE MIN_MAPQ
 START_TIME=$(date +%s)
 
 echo "=============================================================================="
@@ -82,6 +114,8 @@ bash "${SCRIPT_DIR}/qc_data_00.sh" "${RAW_DIR}" "${QC_RAW_DIR}" "${THREADS}"
 # 3. Stage 01: fastp Adapter & Quality Trimming
 bash "${SCRIPT_DIR}/fastp_01.sh" "${RAW_DIR}" "${CLEAN_DIR}" "${FASTP_DIR}" "${THREADS}"
 
+bash "${SCRIPT_DIR}/qc_data_00.sh" "${CLEAN_DIR}" "${QC_CLEAN_DIR}" "${THREADS}"
+
 # 4. Stage 02: STAR Splice-Aware Alignment
 bash "${SCRIPT_DIR}/align_02.sh" "${CLEAN_DIR}" "${ALIGNED_DIR}" "${STAR_INDEX}" "${THREADS}"
 
@@ -89,7 +123,7 @@ bash "${SCRIPT_DIR}/align_02.sh" "${CLEAN_DIR}" "${ALIGNED_DIR}" "${STAR_INDEX}"
 bash "${SCRIPT_DIR}/quant_03.sh" "${ALIGNED_DIR}" "${COUNTS_DIR}" "${GTF_FILE}" "${THREADS}"
 
 # 6. Stage 04: MultiQC Summary Aggregation
-bash "${SCRIPT_DIR}/multiqc_04.sh" "${MULTIQC_DIR}" "${QC_RAW_DIR}" "${FASTP_DIR}" "${ALIGNED_DIR}" "${COUNTS_DIR}"
+bash "${SCRIPT_DIR}/multiqc_04.sh" "${MULTIQC_DIR}" "${QC_RAW_DIR}" "${QC_CLEAN_DIR}" "${FASTP_DIR}" "${ALIGNED_DIR}" "${COUNTS_DIR}"
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))

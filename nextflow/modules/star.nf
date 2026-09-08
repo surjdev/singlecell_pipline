@@ -19,12 +19,12 @@ process STAR_ALIGN {
     path("${meta_id}_ReadsPerGene.out.tab")                                                                                    , emit: gene_counts
 
     script:
-    def sort_ram = task.memory ? (task.memory.toBytes() * 0.75).longValue() : 31000000000
+    def sort_ram = params.star_sort_ram
     """
     STAR \\
         --runThreadN ${task.cpus} \\
-        --genomeDir ${index} \\
-        --readFilesIn ${reads[0]} ${reads[1]} \\
+        --genomeDir '${index}' \\
+        --readFilesIn '${reads[0]}' '${reads[1]}' \\
         --readFilesCommand zcat \\
         --outSAMtype BAM SortedByCoordinate \\
         --outSAMunmapped Within \\

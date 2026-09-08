@@ -26,17 +26,17 @@ process FEATURECOUNTS {
         --countReadPairs \\
         -t exon \\
         -g gene_id \\
-        -a ${gtf} \\
+        -a '${gtf}' \\
         -o featurecounts_raw.txt \\
         -s ${params.strandedness} \\
         -Q 10 \\
-        ${bams}
+        ${bams.collect { "\"${it}\"" }.join(" ")}
 
     # Format clean Gene x Cell expression matrix
     awk '
     BEGIN { FS="\\t"; OFS="\\t" }
     /^#/ { next }
-    NR==2 {
+    \$1 == "Geneid" {
         printf "%s", \$1
         for (i=7; i<=NF; i++) {
             n = split(\$i, parts, "/")

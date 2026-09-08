@@ -27,8 +27,8 @@ process FASTP {
     }
     """
     fastp \\
-        --in1 ${reads[0]} \\
-        --in2 ${reads[1]} \\
+        --in1 '${reads[0]}' \\
+        --in2 '${reads[1]}' \\
         --out1 ${meta_id}_R1.clean.fastq.gz \\
         --out2 ${meta_id}_R2.clean.fastq.gz \\
         ${adapter_args} \\

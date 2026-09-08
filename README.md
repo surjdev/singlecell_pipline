@@ -1,127 +1,60 @@
-# 🧬 Production Smart-seq2 Single-Cell Upstream Pipeline
+# Smart-seq2 processing and downstream analysis
 
-A high-performance, reproducible bioinformatics pipeline for processing **Smart-seq2 and plate-based Single-Cell RNA-seq data** from real-world paired-end FASTQ reads to alignments, gene quantification count matrices, and interactive **MultiQC** quality dashboards.
+สำหรับ paired-end Smart-seq2 / plate-based RNA-seq: หนึ่งคู่ FASTQ = หนึ่งเซลล์
+Bash และ Nextflow ทำ FastQC → fastp → FastQC → STAR/samtools → featureCounts → MultiQC
+ผลลัพธ์เป็น **fragment counts** (genes × cells) ไม่ใช่ UMI matrix และไม่ใช่ workflow สำหรับ raw 10x FASTQ
 
-> **Note**: This repository focuses strictly on **production upstream processing** (Raw FASTQ $\rightarrow$ Count Matrix & MultiQC). All downstream tasks (Scanpy, UMAP, clustering) are excluded.
+## เริ่มใช้งาน
 
----
-
-## 🏛️ Dual-Track Architecture
-
-This project is divided into two completely independent workflows:
-
-```
-single_cell_pipeline/
-├── PLAN.md                     # Master AI roadmap, context strategy & milestones
-├── pixi.toml                   # Unified environment (BioConda / Conda-Forge)
-├── config.env.example          # Production configuration template
-├── data/
-│   ├── raw/                    # User-supplied raw paired-end FASTQ reads
-│   ├── reference/              # Reference genome FASTA, GTF, and STAR index
-│   ├── clean/                  # Trimmed FASTQ reads
-│   ├── aligned/                # Coordinate-sorted BAMs & indices (.bam, .bai)
-│   └── counts/                 # Gene-by-cell count matrix (.tsv)
-│
-├── scripts/                    # [Part 2.1] Pure Bash Modular Tool Suite
-│   ├── env.sh                  # Common environment variables & hardware detection
-│   ├── setup_reference.sh      # Automated reference download & STAR indexing
-│   ├── qc_data_00.sh           # Stage 00: FastQC raw reads
-│   ├── fastp_01.sh             # Stage 01: fastp adapter & quality trimming
-│   ├── align_02.sh             # Stage 02: STAR alignment & samtools indexing
-│   ├── quant_03.sh             # Stage 03: featureCounts & AWK matrix assembly
-│   ├── multiqc_04.sh           # Stage 04: MultiQC report aggregation
-│   └── run_all.sh              # Master runner with CLI flags & validation
-│
-└── nextflow/                   # [Part 2.2] Production Nextflow DSL2 Pipeline
-    ├── main.nf                 # Top-level workflow orchestration
-    ├── nextflow.config         # Profiles (local, docker, singularity, slurm), BioContainers
-    ├── samplesheet.example.csv # Template samplesheet CSV
-    └── modules/                # Self-contained DSL2 tool modules
-        ├── fastqc.nf           # FastQC process
-        ├── fastp.nf            # fastp trimming process
-        ├── star.nf             # STAR alignment & BAM indexing process
-        ├── featurecounts.nf    # featureCounts quantification process
-        └── multiqc.nf          # MultiQC aggregation process
-```
-
----
-
-## 🚀 Getting Started
-
-### 1. Environment Setup via [Pixi](https://pixi.sh/)
 ```bash
 pixi install
+pixi run bash scripts/setup_reference.sh --species human --threads 8
+pixi run bash scripts/run_all.sh \
+  --indir data/raw --star-index data/reference/star_index \
+  --gtf data/reference/genes.gtf --outdir results/bash --threads 4
 ```
 
-### 2. Set Up Reference Genome (Human or Mouse)
-Use the automated reference downloader and indexer:
+Human reference/index ต้องใช้ RAM และพื้นที่มาก โปรดกำหนดทรัพยากรตาม reference;
+`STAR_RAM_LIMIT` เป็น sort buffer เพิ่มจากหน่วยความจำ genome ไม่ใช่ RAM รวม
+ศึกษาวิธีรันแต่ละ stage และ parameter ใน [คู่มือ scripts](scripts/README.md)
+และ [รายละเอียดเครื่องมือ](docs/TOOLS_RUNBOOK.md)
+
+## Nextflow
+
+ตัวอย่าง workflow ที่รันได้อยู่ใน [nextflow/main.nf](nextflow/main.nf)
+
 ```bash
-# Download GENCODE Human (GRCh38) and build STAR index:
-bash scripts/setup_reference.sh --species human --threads 16
-
-# Or download GENCODE Mouse (GRCm39):
-bash scripts/setup_reference.sh --species mouse --threads 16
-
-# Or index custom local genome files:
-bash scripts/setup_reference.sh --fasta /path/to/genome.fa --gtf /path/to/genes.gtf --threads 16
+pixi run nextflow run nextflow/main.nf \
+  --input nextflow/samplesheet.example.csv \
+  --star_index /absolute/path/star_index --gtf /absolute/path/genes.gtf \
+  --outdir results/nextflow --threads 4 -profile local
+# เพิ่ม -resume เพื่อใช้ task ที่สำเร็จแล้วจาก cache
 ```
 
----
+แก้ samplesheet ก่อนรัน: `sample,fastq_1,fastq_2`; sample ต้องไม่ซ้ำ
+relative FASTQ paths อ้างจาก directory ของ CSV ส่วน reference paths อ้างจาก working directory
+ใช้ `.fastq.gz` / `.fq.gz` และชื่อ sample เป็นตัวอักษร ตัวเลข `_ . -`
+อ่าน [คู่มือ Nextflow](nextflow/README.md) สำหรับทรัพยากรและข้อจำกัด profiles
 
-## 💻 Track 1: Pure Bash Modular Scripts (Part 2.1)
+## Downstream บน Jupyter
 
-Designed for **maximum parameter transparency**, tool inspection, and manual execution. **Zero Python dependencies are used**.
-
-### Run with CLI arguments:
 ```bash
-bash scripts/run_all.sh \
-    --indir /path/to/fastqs \
-    --star-index data/reference/star_index \
-    --gtf data/reference/genes.gtf \
-    --threads 16
+cd workbench
+pixi run lab
 ```
 
-### Or run individual stages:
-```bash
-bash scripts/qc_data_00.sh data/raw reports/qc_raw 16
-bash scripts/fastp_01.sh data/raw data/clean reports/fastp 16
-bash scripts/align_02.sh data/clean data/aligned data/reference/star_index 16
-bash scripts/quant_03.sh data/aligned data/counts data/reference/genes.gtf 16
-bash scripts/multiqc_04.sh reports/multiqc
-```
+เริ่มที่ [00_end_to_end.ipynb](workbench/notebooks/00_end_to_end.ipynb)
+รันครบได้ด้วยข้อมูลสังเคราะห์ ไม่ดาวน์โหลดข้อมูล แล้วเปลี่ยน `COUNTS_PATH` เพื่อรับผล upstream:
 
----
+- Bash: `results/bash/data/counts/gene_cell_count_matrix.tsv`
+- Nextflow: `results/nextflow/counts/gene_cell_count_matrix.tsv`
 
-## 🌊 Track 2: Production Nextflow DSL2 Pipeline (Part 2.2)
+[sc_workbench](workbench/README.md) ใช้ AnnData เป็นข้อมูลหลัก
+ใช้ Pandas กับ `adata.obs/var`, NumPy/SciPy กับ `adata.X/layers`, Scikit-learn กับ `adata.obsm['X_pca']`
+fluent API เป็นทางเลือก ไม่จำเป็นต้องใช้ wrapper สำหรับทุกขั้นตอน
 
-Designed for **enterprise deployment**, massive parallelism, cluster execution (Slurm), and cloud portability via BioContainers. Does **not** depend on Track 1 scripts.
+## ตรวจสอบซ้ำ
 
-### Run via Samplesheet:
-```bash
-# Create samplesheet.csv:
-# sample,fastq_1,fastq_2
-# cell_01,/data/cell_01_R1.fastq.gz,/data/cell_01_R2.fastq.gz
-
-nextflow run nextflow/main.nf \
-    --input samplesheet.csv \
-    --star_index data/reference/star_index \
-    --gtf data/reference/genes.gtf \
-    --outdir results \
-    -profile docker
-```
-
-### Run on HPC with Singularity:
-```bash
-nextflow run nextflow/main.nf \
-    --input samplesheet.csv \
-    --star_index data/reference/star_index \
-    --gtf data/reference/genes.gtf \
-    --outdir results \
-    -profile slurm,singularity
-```
-
----
-
-## 📋 Roadmap & Milestone Plan
-
-For detailed context management rules, tool arguments cheatsheets, and AI guidelines, see **[`PLAN.md`](PLAN.md)**.
+ดู [ผลตรวจคุณภาพและขอบเขตการทดสอบ](docs/QUALITY_REVIEW.md) และ
+[วิธี smoke test ด้วยเครื่องมือจริง](tests/README.md)
+การทดสอบสังเคราะห์ยืนยันการต่อระบบ ไม่ได้ยืนยันคุณภาพ mapping/annotation บนข้อมูลทดลองจริง

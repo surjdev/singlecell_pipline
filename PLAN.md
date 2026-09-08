@@ -186,53 +186,183 @@ nextflow run nextflow/main.nf \
 - [x] `nextflow/main.nf`: Robust reference validation and DSL2 dataflow.
 - [x] BioContainers integrated for FastQC, fastp, STAR, Subread, MultiQC.
 
+### Milestone 3: Downstream Analysis Workbench (`workbench/` Sub-Project)
+- [x] **Decoupled Architecture**: Completely self-contained sub-project with its own `pyproject.toml`, `pixi.toml`, `.gitignore`, and `README.md` (ready for independent repo extraction).
+- [x] **Strict Classical Focus (No DL)**: Deep learning modules explicitly rolled back per user command ("Rollback ไม่เอา DL แล้ว"). Zero PyTorch / scvi-tools overhead.
+- [x] **`sc_workbench` Library**:
+  - `io.py`: Ingestion of upstream `data/counts/gene_cell_count_matrix.tsv`, 10x MTX, H5AD, and Seurat CSV export.
+  - `qc.py`: Total counts, detected genes, mito/ribo %, Scrublet doublet detection, filtering.
+  - `preprocess.py`: Library size normalization, log1p, HVG selection, scaling.
+  - `reduction.py`: PCA, Harmony multi-batch integration, k-NN graph, UMAP, t-SNE.
+  - `clustering.py`: Leiden (igraph) & Louvain community detection, sub-clustering.
+  - `markers.py`: Wilcoxon / Welch differential expression, tidy DataFrame extraction.
+  - `annotation.py`: Gene signature scoring and cell type annotation.
+  - `pathway.py`: GSEAPY Enrichr over-representation analysis & GSEA.
+  - `trajectory.py`: PAGA connectivity graph and Diffusion Pseudotime (DPT).
+  - `plotting.py`: Publication palettes, QC violins, UMAP, DotPlot, Volcano plots.
+  - `workbench.py`: High-level `SingleCellWorkbench` fluent chaining pipeline.
+- [x] **Jupyter Notebook Suite (`workbench/notebooks/`)**:
+  - `01_ingest_and_qc.ipynb`: Upstream TSV ingest, QC metrics, Scrublet doublet filtering.
+  - `02_clustering_and_umap.ipynb`: Normalization, HVG, PCA, Harmony, kNN, UMAP, Leiden.
+  - `03_marker_genes_and_annotation.ipynb`: Differential expression, DotPlots, cell annotation.
+  - `04_pathway_and_trajectory.ipynb`: Enrichr pathways, PAGA lineage, DPT pseudotime.
+- [x] **Automated Testing Suite (`workbench/tests/`)**:
+  - `test_io.py`, `test_qc.py`, `test_pipeline.py` (100% passing in Pixi).
+
 ---
 
-## 📖 Tool Argument Anatomy & Cheatsheet
+## 📖 Tool Argument Anatomy, Error Troubleshooting & Output Interpretation
 
-### 1. `fastp` (Trimming)
-```bash
-fastp \
-  --in1 sample_R1_001.fastq.gz --in2 sample_R2_001.fastq.gz \
-  --out1 clean_R1.fastq.gz --out2 clean_R2.fastq.gz \
-  --detect_adapter_for_pe \                      # Auto-detect paired adapters
-  --trim_poly_g --poly_g_min_len 10 \            # Remove NovaSeq poly-G artifacts
-  --trim_poly_x --poly_x_min_len 10 \            # Remove poly-A/T/C homopolymers
-  --cut_front --cut_front_window_size 4 --cut_front_mean_quality 20 \
-  --cut_tail --cut_tail_window_size 4 --cut_tail_mean_quality 20 \
-  -q 20 -u 30 \                                  # Min Q20, max 30% unqualified bases
-  -l 35 \                                        # Production length cutoff (>= 35 bp)
-  --thread 8 --json report.json --html report.html
-```
+> An exhaustive operational manual for every tool is available in **[`docs/TOOLS_RUNBOOK.md`](docs/TOOLS_RUNBOOK.md)**. Below is a structured summary covering all 6 upstream tools:
 
-### 2. `STAR` (Mammalian Alignment)
-```bash
-STAR \
-  --runThreadN 16 \
-  --genomeDir /refs/GRCh38_star_index \
-  --readFilesIn clean_R1.fastq.gz clean_R2.fastq.gz \
-  --readFilesCommand zcat \
-  --outSAMtype BAM SortedByCoordinate \
-  --outSAMunmapped Within \
-  --outSAMattributes NH HI AS nM NM MD jM jI XS \
-  --outFilterType BySJout \
-  --limitBAMsortRAM 31000000000 \                # Prevent OOM during sorting
-  --quantMode GeneCounts \
-  --outFileNamePrefix data/aligned/sample_
-```
+### 1. FastQC (Quality Assessment)
+- **Run Command**:
+  ```bash
+  fastqc --outdir reports/qc_raw --threads 8 --noextract --quiet data/raw/*.fastq.gz
+  ```
+- **Flags Breakdown**:
+  - `--outdir / -o`: Output directory for HTML and ZIP results.
+  - `--threads / -t`: Number of parallel files to analyze simultaneously (~250MB RAM/thread).
+  - `--noextract`: Prevents uncompressing ZIP file, saving disk storage.
+  - `--quiet / -q`: Suppresses verbose stdout messages during pipeline runs.
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `java.lang.OutOfMemoryError: Java heap space`: Exceeded default 512MB heap. Fix: `export _JAVA_OPTIONS="-Xmx2048m"`.
+  - `gzip: unexpected end of file`: Corrupted/truncated FASTQ file. Fix: Verify with `gzip -t <file>` and re-download.
+  - `Too many open files`: Ulimit exceeded. Fix: Batch with `xargs -n 20`.
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `<sample>_fastqc.html`: Interactive visual report.
+  - `<sample>_fastqc.zip`: Raw metric data table (`fastqc_data.txt`).
+  - *Healthy standard*: Phred quality score > 28, GC content unimodal bell curve, adapter content drops to 0% after fastp.
 
-### 3. `subread featureCounts` (Quantification)
-```bash
-featureCounts \
-  -T 16 \
-  -p --countReadPairs \                          # Paired-end fragment counting
-  -t exon -g gene_id \                           # Gene-level summarization
-  -s 0 \                                         # 0 = unstranded (Smart-seq2)
-  -Q 10 \                                        # Min MAPQ 10
-  -a /refs/gencode.v44.gtf \
-  -o data/counts/featurecounts_raw.txt \
-  data/aligned/*.sortedByCoord.out.bam
-```
+---
+
+### 2. fastp (Trimming & Quality Filtering)
+- **Run Command**:
+  ```bash
+  fastp \
+    --in1 data/raw/sample_R1.fastq.gz --in2 data/raw/sample_R2.fastq.gz \
+    --out1 data/clean/sample_R1.clean.fastq.gz --out2 data/clean/sample_R2.clean.fastq.gz \
+    --detect_adapter_for_pe \
+    --trim_poly_g --poly_g_min_len 10 \
+    --trim_poly_x --poly_x_min_len 10 \
+    --cut_front --cut_front_window_size 4 --cut_front_mean_quality 20 \
+    --cut_tail --cut_tail_window_size 4 --cut_tail_mean_quality 20 \
+    -q 20 -u 30 -l 35 --thread 8 \
+    --json reports/fastp/sample_fastp.json --html reports/fastp/sample_fastp.html
+  ```
+- **Flags Breakdown**:
+  - `--detect_adapter_for_pe`: Automatically detects paired adapter sequences via read overlap.
+  - `--adapter_sequence / --adapter_sequence_r2`: Custom sequence override (e.g. Nextera `CTGTCTCTTATACACATCT`).
+  - `--trim_poly_g`: Trims NovaSeq/NextSeq 2-color dark cycle poly-G artifacts.
+  - `--trim_poly_x`: Trims cDNA poly-A/T/C homopolymers.
+  - `--cut_front / --cut_tail`: 5' and 3' sliding window trimming based on mean Phred quality.
+  - `-q 20 -u 30`: Base quality threshold (Q20) and max allowed unqualified base percentage (30%).
+  - `-l 35`: Minimum read length cutoff (filters out short ambiguous reads).
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `R1 and R2 have different number of reads`: Pairing mismatch or truncated mate. Fix: check line count symmetry with `zcat <file> | wc -l`.
+  - `> 90% reads filtered out`: `-l` length requirement set higher than actual sequencer cycle length. Fix: check raw length in FastQC and lower `-l`.
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `sample_R{1,2}.clean.fastq.gz`: Cleaned paired-end reads.
+  - `sample_fastp.json` & `.html`: Trimming statistics and before/after quality curves.
+  - *Healthy standard*: > 85-95% reads passed filter, post-trim Q30 > 90-95%.
+
+---
+
+### 3. STAR (Splice-Aware Alignment)
+- **Run Command**:
+  ```bash
+  STAR \
+    --runThreadN 16 \
+    --genomeDir data/reference/star_index \
+    --readFilesIn data/clean/sample_R1.clean.fastq.gz data/clean/sample_R2.clean.fastq.gz \
+    --readFilesCommand zcat \
+    --outSAMtype BAM SortedByCoordinate \
+    --outSAMunmapped Within \
+    --outSAMattributes NH HI AS nM NM MD jM jI XS \
+    --outFilterType BySJout \
+    --outFilterMultimapNmax 20 \
+    --outFilterMismatchNmax 10 \
+    --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 \
+    --limitBAMsortRAM 31000000000 \
+    --quantMode GeneCounts \
+    --outFileNamePrefix data/aligned/sample_
+  ```
+- **Flags Breakdown**:
+  - `--genomeDir`: Directory containing pre-built STAR suffix array index.
+  - `--readFilesCommand zcat`: Decompresses gzipped input FASTQ on the fly.
+  - `--outSAMtype BAM SortedByCoordinate`: Directly produces coordinate-sorted BAM (no extra samtools sort step).
+  - `--outSAMunmapped Within`: Retains unmapped reads inside BAM file to preserve total library read counts.
+  - `--limitBAMsortRAM 31000000000`: Buffer size for coordinate sorting (~31GB). Prevents OOM crashes on mammalian genomes.
+  - `--outFilterMultimapNmax 20`: Maximum alignment loci allowed before discarding multimappers.
+  - `--quantMode GeneCounts`: STAR internal read summarization per gene.
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `BAMsort: limitBAMsortRAM reached / Killed / Exit 137`: Out of memory during BAM sorting. Fix: increase `--limitBAMsortRAM` or decrease `--runThreadN`.
+  - `FATAL INPUT ERROR: could not open genome file ... Genome`: Corrupted or missing STAR index. Fix: build with `scripts/setup_reference.sh`.
+  - `Uniquely mapped reads % < 40%`: Wrong species reference or severe contamination. Fix: verify sample organism.
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `<sample>_Aligned.sortedByCoord.out.bam`: Coordinate-sorted BAM file.
+  - `<sample>_Log.final.out`: Alignment report summary.
+  - `<sample>_ReadsPerGene.out.tab`: Raw gene counts table.
+  - *Healthy standard*: Uniquely mapped reads > 70-85%, mismatch rate < 0.5-1%.
+
+---
+
+### 4. samtools (BAM Indexing & Inspection)
+- **Run Command**:
+  ```bash
+  samtools index -@ 8 data/aligned/sample_Aligned.sortedByCoord.out.bam
+  samtools flagstat data/aligned/sample_Aligned.sortedByCoord.out.bam
+  ```
+- **Flags Breakdown**:
+  - `index -@ <threads>`: Parallel index builder producing `.bai` index.
+  - `flagstat`: Alignment summary statistics.
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `[E::hts_idx_push] NO_COOR reads not in a single block at the end`: Attempting to index an unsorted or queryname-sorted BAM. Fix: sort by coordinate first.
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `<sample>_Aligned.sortedByCoord.out.bam.bai`: Coordinate index enabling fast random querying in featureCounts and IGV.
+
+---
+
+### 5. Subread featureCounts (Gene Quantification)
+- **Run Command**:
+  ```bash
+  featureCounts \
+    -T 16 -p --countReadPairs \
+    -t exon -g gene_id \
+    -s 0 -Q 10 \
+    -a data/reference/genes.gtf \
+    -o data/counts/featurecounts_raw.txt \
+    data/aligned/*.sortedByCoord.out.bam
+  ```
+- **Flags Breakdown**:
+  - `-p --countReadPairs`: Paired-end mode; counts fragments (pairs) rather than individual reads twice.
+  - `-t exon`: Feature type to quantify in GTF column 3.
+  - `-g gene_id`: Meta-feature grouping attribute in GTF column 9.
+  - `-s 0`: Strand specificity (0 = unstranded Smart-seq2, 1 = stranded, 2 = reverse stranded).
+  - `-Q 10`: Minimum MAPQ mapping quality threshold.
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `Assigned: 0 (0.0%)`: Chromosome naming mismatch between BAM (`chr1, chr2`) and GTF (`1, 2`) or inverted strand (`-s 1` instead of `-s 0`). Fix: ensure consistent chromosome prefixes.
+  - `Failed to open annotation file`: GTF is gzipped (`.gtf.gz`). Fix: decompress GTF (`gzip -d genes.gtf.gz`).
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `featurecounts_raw.txt.summary`: Crucial breakdown of Assigned vs Unassigned reads.
+  - `gene_cell_count_matrix.tsv`: Clean Gene $\times$ Cell count matrix.
+  - *Healthy standard*: Assigned reads > 60-80%.
+
+---
+
+### 6. MultiQC (Log Aggregation & Dashboard)
+- **Run Command**:
+  ```bash
+  multiqc --outdir reports/multiqc --filename single_cell_multiqc_report.html --force --interactive \
+    reports/qc_raw reports/fastp data/aligned data/counts
+  ```
+- **Flags Breakdown**:
+  - `--force / -f`: Overwrite existing report.
+  - `--interactive`: Enables interactive web plots for zooming and filtering.
+- **Common Errors & Diagnostics ("เจอ error อะไร")**:
+  - `No analysis results found`: Incorrect search paths or non-standard file names. Fix: specify folders directly.
+- **Expected Outputs & Interpretation ("ผลลัพธ์เป็นอย่างไร")**:
+  - `single_cell_multiqc_report.html`: Comprehensive dashboard consolidating FastQC, fastp, STAR, and featureCounts metrics across all cells.
 
 ---
 
@@ -243,3 +373,4 @@ When concluding an AI turn or handing off to another agent, always provide:
 2. **Commands Executed**: Exact bash/nextflow commands tested.
 3. **Artifacts Produced**: Output files created.
 4. **Next Immediate Steps**: Concrete single task for the next session.
+
