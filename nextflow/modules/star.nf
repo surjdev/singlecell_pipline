@@ -20,11 +20,12 @@ process STAR_ALIGN {
 
     script:
     def sort_ram = params.star_sort_ram
+    def read_files = (reads instanceof List) ? reads.collect { "'${it}'" }.join(" ") : "'${reads}'"
     """
     STAR \\
         --runThreadN ${task.cpus} \\
         --genomeDir '${index}' \\
-        --readFilesIn '${reads[0]}' '${reads[1]}' \\
+        --readFilesIn ${read_files} \\
         --readFilesCommand zcat \\
         --outSAMtype BAM SortedByCoordinate \\
         --outSAMunmapped Within \\

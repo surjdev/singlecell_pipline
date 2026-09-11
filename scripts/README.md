@@ -2,7 +2,7 @@
 
 ทุกคำสั่งรันจาก repository root ภายใน `pixi run ...` หรือ `pixi shell`
 script แต่ละตัวเป็น Bash wrapper อ่านตัวเลือกจริงของเครื่องมือได้ใน source
-ดูความหมายเชิงละเอียดของ flags ที่ [TOOLS_RUNBOOK](../docs/TOOLS_RUNBOOK.md)
+ดูคู่มือการรันฉบับเต็มได้ที่ [คู่มือการรันฉบับละเอียด (RUN_GUIDE)](../docs/RUN_GUIDE.md) และดูความหมายเชิงละเอียดของ flags ที่ [TOOLS_RUNBOOK](../docs/TOOLS_RUNBOOK.md)
 
 | Script | Input → output | สิ่งที่ควรตรวจ |
 |---|---|---|

@@ -43,5 +43,5 @@ The former empty `conda` profile was removed because it specified no tool enviro
 Unused `max_memory`, `max_cpus`, `max_time` placeholders were removed;
 use process config overrides as above. Retries currently repeat resource allocations without increasing RAM.
 
-See [repeatable real-tool smoke test](../tests/README.md).
+See [comprehensive execution guide](../docs/RUN_GUIDE.md) and [repeatable real-tool smoke test](../tests/README.md).
 Nextflow staging semantics: [official process documentation](https://nextflow.io/docs/stable/process.html).

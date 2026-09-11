@@ -16,8 +16,8 @@ pixi run bash scripts/run_all.sh \
 
 Human reference/index ต้องใช้ RAM และพื้นที่มาก โปรดกำหนดทรัพยากรตาม reference;
 `STAR_RAM_LIMIT` เป็น sort buffer เพิ่มจากหน่วยความจำ genome ไม่ใช่ RAM รวม
-ศึกษาวิธีรันแต่ละ stage และ parameter ใน [คู่มือ scripts](scripts/README.md)
-และ [รายละเอียดเครื่องมือ](docs/TOOLS_RUNBOOK.md)
+ศึกษาวิธีรันแบบละเอียดทั้ง Bash และ Nextflow ได้ที่ [คู่มือการรันฉบับละเอียด](docs/RUN_GUIDE.md),
+[คู่มือ scripts](scripts/README.md) และ [รายละเอียดเครื่องมือเชิงลึก](docs/TOOLS_RUNBOOK.md)
 
 ## Nextflow
 

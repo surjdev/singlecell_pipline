@@ -18,13 +18,26 @@ process FASTQC {
 
     script:
     def stage = task.process.endsWith('FASTQC_CLEAN') ? 'clean' : 'raw'
-    """
-    ln -s '${reads[0]}' '${meta_id}_${stage}_R1.fastq.gz'
-    ln -s '${reads[1]}' '${meta_id}_${stage}_R2.fastq.gz'
-    fastqc \
-        --threads ${task.cpus} \
-        --noextract \
-        --quiet \
-        '${meta_id}_${stage}_R1.fastq.gz' '${meta_id}_${stage}_R2.fastq.gz'
-    """
+    def is_pe = (reads instanceof List) && reads.size() > 1
+    if (is_pe) {
+        """
+        ln -s '${reads[0]}' '${meta_id}_${stage}_R1.fastq.gz'
+        ln -s '${reads[1]}' '${meta_id}_${stage}_R2.fastq.gz'
+        fastqc \\
+            --threads ${task.cpus} \\
+            --noextract \\
+            --quiet \\
+            '${meta_id}_${stage}_R1.fastq.gz' '${meta_id}_${stage}_R2.fastq.gz'
+        """
+    } else {
+        def r1 = (reads instanceof List) ? reads[0] : reads
+        """
+        ln -s '${r1}' '${meta_id}_${stage}.fastq.gz'
+        fastqc \\
+            --threads ${task.cpus} \\
+            --noextract \\
+            --quiet \\
+            '${meta_id}_${stage}.fastq.gz'
+        """
+    }
 }

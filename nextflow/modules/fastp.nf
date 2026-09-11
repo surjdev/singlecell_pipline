@@ -13,24 +13,28 @@ process FASTP {
     tuple val(meta_id), path(reads)
 
     output:
-    tuple val(meta_id), path("${meta_id}_R{1,2}.clean.fastq.gz"), emit: reads
-    path("${meta_id}_fastp.json")                                , emit: json
-    path("${meta_id}_fastp.html")                                , emit: html
+    tuple val(meta_id), path("${meta_id}*.clean.fastq.gz"), emit: reads
+    path("${meta_id}_fastp.json")                        , emit: json
+    path("${meta_id}_fastp.html")                        , emit: html
 
     script:
-    def adapter_args = "--detect_adapter_for_pe"
+    def is_pe = (reads instanceof List) && reads.size() > 1
+    def adapter_args = ""
     if (params.adapter_r1 != 'auto' && params.adapter_r1 != '') {
         adapter_args = "--adapter_sequence ${params.adapter_r1}"
-        if (params.adapter_r2 != 'auto' && params.adapter_r2 != '') {
+        if (is_pe && params.adapter_r2 != 'auto' && params.adapter_r2 != '') {
             adapter_args += " --adapter_sequence_r2 ${params.adapter_r2}"
         }
+    } else if (is_pe) {
+        adapter_args = "--detect_adapter_for_pe"
     }
+
+    def io_args = is_pe ?
+        "--in1 '${reads[0]}' --in2 '${reads[1]}' --out1 ${meta_id}_R1.clean.fastq.gz --out2 ${meta_id}_R2.clean.fastq.gz" :
+        "--in1 '${reads instanceof List ? reads[0] : reads}' --out1 ${meta_id}.clean.fastq.gz"
     """
     fastp \\
-        --in1 '${reads[0]}' \\
-        --in2 '${reads[1]}' \\
-        --out1 ${meta_id}_R1.clean.fastq.gz \\
-        --out2 ${meta_id}_R2.clean.fastq.gz \\
+        ${io_args} \\
         ${adapter_args} \\
         --trim_poly_g \\
         --poly_g_min_len 10 \\

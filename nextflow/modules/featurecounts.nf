@@ -12,6 +12,7 @@ process FEATURECOUNTS {
     input:
     path(bams)
     path(gtf)
+    val(is_single_end)
 
     output:
     path("gene_cell_count_matrix.tsv")   , emit: matrix
@@ -19,11 +20,11 @@ process FEATURECOUNTS {
     path("featurecounts_raw.txt.summary"), emit: summary
 
     script:
+    def pe_args = is_single_end ? "" : "-p --countReadPairs"
     """
     featureCounts \\
         -T ${task.cpus} \\
-        -p \\
-        --countReadPairs \\
+        ${pe_args} \\
         -t exon \\
         -g gene_id \\
         -a '${gtf}' \\
