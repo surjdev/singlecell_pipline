@@ -1,0 +1,13 @@
+# Enforce LF line endings across all platforms (prevent Windows CRLF issues on Linux)
+* text=auto eol=lf
+*.sh text eol=lf
+*.env text eol=lf
+*.py text eol=lf
+*.nf text eol=lf
+*.config text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
