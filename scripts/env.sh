@@ -55,11 +55,11 @@ STAR_RAM_LIMIT="${STAR_RAM_LIMIT:-31000000000}"
 # ------------------------------------------------------------------------------
 # 4. Trimming & Quality Thresholds (fastp)
 # ------------------------------------------------------------------------------
-MIN_READ_LENGTH="${MIN_READ_LENGTH:-35}"       # Minimum read length after trimming
+MIN_READ_LENGTH="${MIN_READ_LENGTH:-25}"       # Minimum read length (25 bp for 43 bp HiSeq 2000 reads)
 MIN_QUALITY="${MIN_QUALITY:-20}"               # Phred score >= Q20 (99% base accuracy)
 MAX_UNQUALIFIED_PCT="${MAX_UNQUALIFIED_PCT:-30}" # Max % of bases allowed below Q20
-ADAPTER_FWD="${ADAPTER_FWD:-auto}"             # "auto" or custom sequence (e.g. Nextera CTGTCTCTTATACACATCT)
-ADAPTER_REV="${ADAPTER_REV:-auto}"             # "auto" or custom sequence
+ADAPTER_FWD="${ADAPTER_FWD:-CTGTCTCTTATACACATCT}" # Nextera adapter sequence for Smart-seq2
+ADAPTER_REV="${ADAPTER_REV:-CTGTCTCTTATACACATCT}" # Nextera adapter sequence
 
 # ------------------------------------------------------------------------------
 # 5. Quantification Options (featureCounts)

@@ -1,0 +1,26 @@
+# Conda Environment Specification for Single-Cell Pipeline
+# Contains: fasterq-dump (via sra-tools), nextflow, pixi, pigz, wget, curl
+#
+# How to create with custom prefix/location:
+#   conda env create --prefix /path/to/target/directory -f environment.yml
+#
+# How to activate:
+#   conda activate /path/to/target/directory
+
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+
+dependencies:
+  # SRA Toolkit: includes fasterq-dump, prefetch, fastq-dump
+  - sra-tools >=3.1.0
+  # Nextflow workflow orchestration engine
+  - nextflow >=23.10.0
+  # Pixi package & project manager
+  - pixi >=0.20.0
+  # Network & Utilities
+  - wget
+  - curl
+  - pigz
+  - python >=3.10

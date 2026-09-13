@@ -17,6 +17,8 @@ samtools = ">=1.19"
 nextflow = ">=23.10.0"
 
 [tasks]
+download = "bash scripts/download_data.sh"
+setup-ref = "bash scripts/setup_reference.sh --species human --sjdbOverhang 42"
 qc-raw = "bash scripts/qc_data_00.sh"
 fastp = "bash scripts/fastp_01.sh"
 align = "bash scripts/align_02.sh"

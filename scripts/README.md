@@ -6,6 +6,7 @@ script แต่ละตัวเป็น Bash wrapper อ่านตัว�
 
 | Script | Input → output | สิ่งที่ควรตรวจ |
 |---|---|---|
+| `download_data.sh` | metadata CSV → raw FASTQ (`data/raw`) | รองรับ resume (-c), gzip integrity check, HTTPS/FTP |
 | `setup_reference.sh` | FASTA + GTF → STAR index | species/build ตรงกัน; index ใช้ STAR รุ่นที่เข้ากัน |
 | `qc_data_00.sh` | FASTQ → HTML/ZIP | base quality, adapters, read length; warning ไม่ใช่เหตุให้ทิ้งเซลล์ทันที |
 | `fastp_01.sh` | gzip paired FASTQ → clean FASTQ + JSON/HTML | reads retained, adapter trimming, length distribution |
